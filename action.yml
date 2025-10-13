@@ -1,0 +1,206 @@
+name: 'Maven Release Action'
+description: 'Complete Maven release workflow with Maven Central deployment and GitHub Pages'
+
+branding:
+  icon: 'package'
+  color: 'blue'
+
+inputs:
+  java-version:
+    description: 'Java version to use'
+    default: '17'
+    required: false
+  java-distribution:
+    description: 'Java distribution'
+    default: 'zulu'
+    required: false
+  maven-args:
+    description: 'Additional Maven arguments'
+    default: '-ntp -U -B'
+    required: false
+  gpg-private-key:
+    description: 'GPG private key for signing'
+    required: true
+  gpg-passphrase:
+    description: 'GPG passphrase'
+    required: true
+  maven-username:
+    description: 'Maven Central username (OSSRH)'
+    required: true
+  maven-password:
+    description: 'Maven Central password (OSSRH)'
+    required: true
+  github-token:
+    description: 'GitHub token for creating releases'
+    required: true
+  codecov-token:
+    description: 'Codecov token for uploading coverage'
+    required: false
+    default: ''
+  skip-tests:
+    description: 'Skip running tests'
+    default: 'false'
+    required: false
+  deploy-pages:
+    description: 'Deploy documentation to GitHub Pages'
+    default: 'true'
+    required: false
+  create-release:
+    description: 'Create GitHub Release'
+    default: 'true'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Extract version from tag
+      id: version
+      shell: bash
+      run: |
+        if [[ "$GITHUB_REF" =~ ^refs/tags/v(.+)$ ]]; then
+          TAG_NAME="${BASH_REMATCH[1]}"
+        else
+          TAG_NAME=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        fi
+        echo "version=${TAG_NAME}" >> $GITHUB_OUTPUT
+        echo "Release version: ${TAG_NAME}"
+        
+        # 验证版本格式 (semver)
+        if [[ ! "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+          echo "::error::Invalid version format: $TAG_NAME. Expected semver format (e.g., 1.0.0 or 1.0.0-beta)"
+          exit 1
+        fi
+
+    - name: Set up JDK ${{ inputs.java-version }}
+      uses: actions/setup-java@v5
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.java-distribution }}
+        cache: 'maven'
+        server-id: central
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_PASSWORD
+        gpg-private-key: ${{ inputs.gpg-private-key }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+    - name: Verify Maven version
+      shell: bash
+      run: |
+        mvn --version
+        echo "Project version from POM:"
+        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+
+    - name: Run tests with coverage
+      if: inputs.skip-tests != 'true'
+      shell: bash
+      run: mvn clean verify ${{ inputs.maven-args }}
+
+    - name: Generate test report
+      if: inputs.skip-tests != 'true' && (success() || failure())
+      uses: dorny/test-reporter@v2
+      with:
+        name: Release Tests
+        path: target/surefire-reports/*.xml
+        reporter: java-junit
+        fail-on-error: true
+
+    - name: Upload test results
+      if: inputs.skip-tests != 'true' && always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-release-${{ steps.version.outputs.version }}
+        path: |
+          target/surefire-reports/
+          target/failsafe-reports/
+        retention-days: 30
+
+    - name: Upload coverage to Codecov
+      if: inputs.skip-tests != 'true' && inputs.codecov-token != ''
+      uses: codecov/codecov-action@v4
+      with:
+        files: target/jacoco-results/jacoco.xml
+        flags: release
+        name: release-coverage
+        fail_ci_if_error: false
+        token: ${{ inputs.codecov-token }}
+
+    - name: Build and sign artifacts
+      shell: bash
+      run: |
+        SKIP_TESTS_FLAG=""
+        if [ "${{ inputs.skip-tests }}" == "true" ]; then
+          SKIP_TESTS_FLAG="-DskipTests"
+        fi
+        mvn deploy site site:stage ${SKIP_TESTS_FLAG} -Pcentral ${{ inputs.maven-args }}
+      env:
+        MAVEN_USERNAME: ${{ inputs.maven-username }}
+        MAVEN_PASSWORD: ${{ inputs.maven-password }}
+        MAVEN_GPG_PASSPHRASE: ${{ inputs.gpg-passphrase }}
+
+    - name: Verify artifacts
+      shell: bash
+      run: |
+        echo "## 📦 Generated Artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -d target ]; then
+          echo "### JAR Files:" >> $GITHUB_STEP_SUMMARY
+          find target -maxdepth 1 -name "*.jar" -exec basename {} \; | while read file; do
+            echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### POM Files:" >> $GITHUB_STEP_SUMMARY
+          find target -maxdepth 1 -name "*.pom" -exec basename {} \; | while read file; do
+            echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Signature Files:" >> $GITHUB_STEP_SUMMARY
+          find target -maxdepth 1 -name "*.asc" -exec basename {} \; | while read file; do
+            echo "- \`$file\` ✅" >> $GITHUB_STEP_SUMMARY
+          done
+        fi
+
+    - name: Create GitHub Release
+      if: inputs.create-release == 'true' && startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        VERSION=${{ steps.version.outputs.version }}
+        
+        # 创建 GitHub Release（自动生成发布说明）
+        gh release create "v${VERSION}" \
+          --title "v${VERSION}" \
+          --generate-notes \
+          target/*.jar \
+          target/*.pom \
+          target/*.asc
+
+    - name: Deploy to GitHub Pages
+      if: inputs.deploy-pages == 'true'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ inputs.github-token }}
+        publish_dir: ./target/staging
+        commit_message: "docs: deploy documentation for version ${{ steps.version.outputs.version }}"
+
+    - name: Generate release summary
+      if: always()
+      shell: bash
+      run: |
+        echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Java**: ${{ inputs.java-version }} (${{ inputs.java-distribution }})" >> $GITHUB_STEP_SUMMARY
+        echo "- **Tests**: ${{ inputs.skip-tests == 'true' && '⏭️ Skipped' || '✅ Executed' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **GitHub Release**: ${{ inputs.create-release == 'true' && '✅ Created' || '⏭️ Skipped' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **GitHub Pages**: ${{ inputs.deploy-pages == 'true' && '✅ Deployed' || '⏭️ Skipped' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [[ "$GITHUB_REF" =~ ^refs/tags/ ]]; then
+          echo "### 🔗 Links:" >> $GITHUB_STEP_SUMMARY
+          echo "- [Release Notes](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.version }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [Maven Central](https://central.sonatype.com/artifact/$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)/$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)/${{ steps.version.outputs.version }})" >> $GITHUB_STEP_SUMMARY
+        fi
+
