@@ -16,7 +16,7 @@ on:
         description: 'Deploy documentation to GitHub Pages'
         required: false
         type: boolean
-        default: true
+        default: false
       create-release:
         description: 'Create GitHub Release'
         required: false
@@ -65,7 +65,7 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           echo "📝 Updating POM version to $VERSION"
           cd test-project
-          mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
+          mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -ntp -U -B
           
           if [ -n "$(git status --porcelain)" ]; then
             git add pom.xml
@@ -77,7 +77,21 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           TAG="v$VERSION"
           
-          echo "🏷️ Creating tag $TAG"
+          echo "🔍 Checking if tag $TAG already exists..."
+          
+          # Check if tag exists locally
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "⚠️  Tag $TAG exists locally, deleting it..."
+            git tag -d "$TAG"
+          fi
+          
+          # Check if tag exists on remote
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG"; then
+            echo "⚠️  Tag $TAG exists on remote, deleting it..."
+            git push origin ":refs/tags/$TAG"
+          fi
+          
+          echo "🏷️  Creating tag $TAG"
           git tag -a "$TAG" -m "Release version $VERSION"
           
           echo "📤 Pushing tag to remote"
@@ -85,7 +99,7 @@ jobs:
       
       - name: Release to Maven Central
         id: release
-        uses: rosestack/maven-release-action@main
+        uses: ./
         with:
           working-directory: 'test-project'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}

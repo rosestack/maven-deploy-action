@@ -23,8 +23,7 @@ jobs:
           fetch-depth: 0  # Required for generating release notes
       
       - name: Release to Maven Central
-        id: release
-        uses: rosestack/maven-release-action@main
+        uses: ./
         with:
           working-directory: 'test-project'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -33,5 +32,5 @@ jobs:
           maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           skip-tests: 'false'
-          deploy-pages: 'true'
+          deploy-pages: 'false'
           create-release: 'true'
