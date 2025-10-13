@@ -1,10 +1,10 @@
-name: Manual Release
+name: Deploy By Manual
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., 1.0.0 or 1.0.0-beta.1)'
+        description: 'Deploy version (e.g., 1.0.0 or 1.0.0-beta.1)'
         required: true
         type: string
       skip-tests:
@@ -17,11 +17,6 @@ on:
         required: false
         type: boolean
         default: false
-      create-release:
-        description: 'Create GitHub Release'
-        required: false
-        type: boolean
-        default: true
 
 permissions:
   contents: write
@@ -59,8 +54,8 @@ jobs:
           
           echo "✅ Version format is valid: $VERSION"
 
-  release:
-    name: Release
+  deploy:
+    name: Deploy
     needs: validate-version
     runs-on: ubuntu-latest
     
@@ -112,8 +107,8 @@ jobs:
           echo "📤 Pushing tag to remote"
           git push origin "$TAG"
       
-      - name: Release to Maven Central
-        id: release
+      - name: Deploy to Maven Central
+        id: deploy
         uses: ./
         with:
           working-directory: 'test-project'
@@ -124,4 +119,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           skip-tests: ${{ github.event.inputs.skip-tests }}
           deploy-pages: ${{ github.event.inputs.deploy-pages }}
-          create-release: ${{ github.event.inputs.create-release }}

@@ -19,8 +19,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Required for generating release notes
       
       - name: Deploy to Maven Central
         uses: ./
@@ -33,4 +31,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           skip-tests: 'false'
           deploy-pages: 'false'
-          create-release: 'true'

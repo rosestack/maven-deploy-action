@@ -2,33 +2,19 @@
 
 [English](README.md) | 简体中文
 
-一个全面的 GitHub 复合 Action，用于将 Maven 项目部署到 Maven Central 和 GitHub Pages。
+将 Maven 项目部署到 Maven Central 和 GitHub Pages 的 GitHub Action。
 
-## ✨ 特性
+## 特性
 
-* 🚀 **完整的部署工作流** - 一个 Action 处理整个部署过程
-* 📦 **Maven Central 部署** - 自动部署并进行 GPG 签名
-* 📚 **文档发布** - 将 Maven 站点部署到 GitHub Pages
-* 🧪 **测试与覆盖率** - 运行测试并集成 JaCoCo 覆盖率
-* 🔐 **安全签名** - 对所有构件进行 GPG 签名
-* 🎯 **灵活配置** - 自定义发布的每个方面
-* 📁 **多模块支持** - 通过工作目录支持子模块
+* 🚀 **Maven Central 部署** - 自动部署并进行 GPG 签名
+* 📚 **GitHub Pages** - 部署 Maven 站点文档
+* 🧪 **测试与覆盖率** - JaCoCo 集成
 * ⚡ **高性能** - 单次构建流程，无冗余步骤
 
-## 📋 前提条件
-
-* 配置了 Maven Central 部署的 Maven 项目
-* 用于签名构件的 GPG 密钥
-* Maven Central (OSSRH) 账户
-* 仓库启用 GitHub Actions
-* Java 8 或更高版本
-
-## 🚀 快速开始
-
-### 最简配置
+## 快速开始
 
 ```yaml
-name: Release
+name: Deploy
 
 on:
   push:
@@ -36,15 +22,13 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Deploy to Maven Central
-        uses: rosestack/maven-deploy-action@main
+      - uses: chensoul/maven-deploy-action@v1
         with:
-          java-version: '17'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
           maven-username: ${{ secrets.MAVEN_USERNAME }}
@@ -52,162 +36,116 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### 完整功能发布
+## 输入参数
+
+| 参数 | 描述 | 必需 | 默认值 |
+|------|------|------|--------|
+| `java-version` | Java 版本 | 否 | `8` |
+| `java-distribution` | Java 发行版 | 否 | `zulu` |
+| `server-id` | Maven 服务器 ID | 否 | `central` |
+| `maven-args` | 额外的 Maven 参数 | 否 | `-ntp -U -B` |
+| `gpg-private-key` | GPG 私钥 | 是* | - |
+| `gpg-passphrase` | GPG 密码 | 是* | - |
+| `maven-username` | Maven Central 用户名 | 是* | - |
+| `maven-password` | Maven Central 密码 | 是* | - |
+| `github-token` | GitHub token（用于 Pages） | 否** | `''` |
+| `skip-tests` | 跳过测试 | 否 | `false` |
+| `deploy-pages` | 部署到 GitHub Pages | 否 | `true` |
+| `working-directory` | Maven 工作目录 | 否 | `.` |
+
+\* Maven Central 部署必需  
+\*\* 仅在 `deploy-pages: 'true'` 时需要
+
+## 输出参数
+
+| 输出 | 描述 |
+|------|------|
+| `version` | 已部署的版本 |
+| `deployed` | 部署是否成功 |
+
+## 使用示例
+
+### 仅 Maven Central
 
 ```yaml
-- name: Deploy
-  uses: rosestack/maven-deploy-action@main
+- uses: chensoul/maven-deploy-action@v1
   with:
-    java-version: '17'
-    java-distribution: 'temurin'
+    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
+    deploy-pages: 'false'
+```
+
+### 包含 GitHub Pages
+
+```yaml
+- uses: chensoul/maven-deploy-action@v1
+  with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
     maven-username: ${{ secrets.MAVEN_USERNAME }}
     maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    skip-tests: 'false'
-    deploy-pages: 'true'
 ```
 
-## 📖 输入参数
-
-| 参数              | 描述                                 | 必需 | 默认值 |
-|-------------------|--------------------------------------|------|--------|
-| java-version      | 使用的 Java 版本                     | 否   | 8      |
-| java-distribution | Java 发行版 (temurin, zulu 等)       | 否   | zulu   |
-| server-id         | Maven 服务器 ID                      | 否   | central |
-| maven-args        | 额外的 Maven 参数                    | 否   | -ntp -U -B |
-| gpg-private-key   | 用于签名的 GPG 私钥                  | **是*** | -      |
-| gpg-passphrase    | GPG 密码短语                         | **是*** | -      |
-| maven-username    | Maven Central 用户名                 | **是*** | -      |
-| maven-password    | Maven Central 密码                   | **是*** | -      |
-| github-token      | 用于部署页面的 GitHub token | 否**    | ''     |
-| skip-tests        | 跳过运行测试                         | 否   | false  |
-| deploy-pages      | 将文档部署到 GitHub Pages            | 否   | true   |
-| working-directory | Maven 的工作目录                     | 否   | .      |
-
-**\*** Maven Central 部署必需  
-**\*\*** 仅在 `deploy-pages: 'true'` 时需要
-
-### Java 版本选择
-
-默认 Java 版本为 **8**，以获得最大兼容性：
+### 跳过测试
 
 ```yaml
-# 默认（Java 8）- 最大兼容性
-- uses: rosestack/maven-deploy-action@main
-
-# 现代项目
-- uses: rosestack/maven-deploy-action@main
+- uses: chensoul/maven-deploy-action@v1
   with:
-    java-version: '17'  # 或 '21'
-```
-
-**何时使用不同版本：**
-- **Java 8**（默认）：面向广泛用户的库、传统项目
-- **Java 17**：现代项目、当前的 LTS 版本，长期支持
-- **Java 21**：最新的 LTS 版本、前沿特性
-
-### 各功能所需密钥
-
-| 功能 | 必需的密钥 |
-|---------|------------------|
-| **Maven Central 部署**（核心） | `gpg-private-key`, `gpg-passphrase`, `maven-username`, `maven-password` |
-| **GitHub Pages**（可选） | `github-token` |
-
-## 📤 输出参数
-
-| 输出        | 描述                            |
-|-------------|--------------------------------|
-| version     | 已部署的版本号                    |
-| deployed    | 构件是否已成功部署              |
-
-## 💡 使用示例
-
-### 示例 1：最小化配置（仅 Maven Central）
-
-如果您只想部署到 Maven Central，不需要 GitHub Pages：
-
-```yaml
-- name: Deploy to Maven Central
-  uses: rosestack/maven-deploy-action@main
-  with:
-    java-version: '17'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
     maven-username: ${{ secrets.MAVEN_USERNAME }}
     maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    # 禁用页面功能时无需 github-token：
+    skip-tests: 'true'
     deploy-pages: 'false'
 ```
 
-### 示例 2：标签推送时发布（完整功能）
+### 子模块
 
 ```yaml
-name: Release
-
-on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
-      
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: 发布
-        uses: rosestack/maven-deploy-action@main
-        with:
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          maven-username: ${{ secrets.MAVEN_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_PASSWORD }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+- uses: chensoul/maven-deploy-action@v1
+  with:
+    working-directory: './backend'
+    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
 ```
 
-### 示例 3：手动发布工作流
+### 手动部署工作流
 
 ```yaml
-name: 手动发布
+name: Manual Deploy
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: '发布版本 (例如：1.0.0)'
+        description: 'Version (e.g., 1.0.0)'
         required: true
       skip-tests:
-        description: '跳过测试'
         type: boolean
         default: false
 
 jobs:
-  release:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: 更新 POM 版本
+      - name: Update version and tag
         run: |
           mvn versions:set -DnewVersion=${{ github.event.inputs.version }}
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add pom.xml
-          git commit -m "chore: 版本升级至 ${{ github.event.inputs.version }}"
-          git tag -a "v${{ github.event.inputs.version }}" -m "发布 v${{ github.event.inputs.version }}"
+          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
+          git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
           git push origin "v${{ github.event.inputs.version }}"
       
-      - name: 发布
-        uses: rosestack/maven-deploy-action@main
+      - uses: chensoul/maven-deploy-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -217,112 +155,42 @@ jobs:
           skip-tests: ${{ github.event.inputs.skip-tests }}
 ```
 
-### 示例 4：带代码覆盖率的发布
+## 配置
 
-```yaml
-- name: 带覆盖率的发布
-  id: release
-  uses: rosestack/maven-deploy-action@main
-  with:
-    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-
-- name: 检查部署状态
-  run: |
-    echo "部署版本: ${{ steps.release.outputs.version }}"
-    echo "部署状态: ${{ steps.release.outputs.deployed }}"
-```
-
-### 示例 5：快速发布（跳过测试）
-
-```yaml
-- name: 快速发布
-  uses: rosestack/maven-deploy-action@main
-  with:
-    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    skip-tests: 'true'
-    deploy-pages: 'false'
-```
-
-### 示例 6：发布子模块
-
-```yaml
-- name: 发布后端模块
-  uses: rosestack/maven-deploy-action@main
-  with:
-    working-directory: './backend'
-    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-```
-
-### 示例 7：多 Java 版本发布
-
-```yaml
-strategy:
-  matrix:
-    java: ['11', '17', '21']
-steps:
-  - name: 在 Java ${{ matrix.java }} 上发布
-    uses: rosestack/maven-deploy-action@main
-    with:
-      java-version: ${{ matrix.java }}
-      gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-      gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-      maven-username: ${{ secrets.MAVEN_USERNAME }}
-      maven-password: ${{ secrets.MAVEN_PASSWORD }}
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-```
-
-## 🔐 配置密钥
-
-### 1. GPG 密钥设置
+### 1. GPG 密钥
 
 ```bash
-# 生成 GPG 密钥（如果没有）
+# 生成密钥
 gpg --full-generate-key
 
 # 导出私钥
 gpg --armor --export-secret-keys YOUR_KEY_ID > private-key.asc
 
-# 导出公钥
-gpg --armor --export YOUR_KEY_ID > public-key.asc
-
-# 上传公钥到密钥服务器
+# 上传公钥
 gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
-gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
 ```
 
 添加到 GitHub Secrets：
 - `GPG_PRIVATE_KEY`: `private-key.asc` 的内容
-- `GPG_PASSPHRASE`: GPG 密钥密码
+- `GPG_PASSPHRASE`: GPG 密码
 
-### 2. Maven Central (OSSRH) 设置
+### 2. Maven Central
 
 1. 在 https://central.sonatype.com 创建账户
 2. 请求命名空间（例如：`io.github.yourusername`）
 3. 生成用户令牌
 
 添加到 GitHub Secrets：
-- `MAVEN_USERNAME`: OSSRH 用户名或令牌用户名
-- `MAVEN_PASSWORD`: OSSRH 密码或令牌密码
+- `MAVEN_USERNAME`: OSSRH 用户名或令牌
+- `MAVEN_PASSWORD`: OSSRH 密码或令牌
 
 ### 3. GitHub Token
 
-使用默认的 `${{ secrets.GITHUB_TOKEN }}` 或创建具有 `contents: write` 权限的个人访问令牌。
+使用 `${{ secrets.GITHUB_TOKEN }}` 或创建具有 `contents: write` 权限的 PAT。
 
-## 📝 Maven POM 配置
+## Maven POM 配置
 
-您的 `pom.xml` 应包含：
+`pom.xml` 需要包含：
 
 ```xml
 <project>
@@ -330,7 +198,7 @@ gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
   <artifactId>your-project</artifactId>
   <version>1.0.0</version>
   
-  <!-- Maven Central 必需的元数据 -->
+  <!-- 必需的元数据 -->
   <name>Your Project</name>
   <description>项目描述</description>
   <url>https://github.com/yourusername/your-project</url>
@@ -345,13 +213,12 @@ gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
   <developers>
     <developer>
       <name>Your Name</name>
-      <email>your.email@example.com</email>
+      <email>your@email.com</email>
     </developer>
   </developers>
   
   <scm>
     <connection>scm:git:git://github.com/yourusername/your-project.git</connection>
-    <developerConnection>scm:git:ssh://github.com:yourusername/your-project.git</developerConnection>
     <url>https://github.com/yourusername/your-project</url>
   </scm>
   
@@ -367,51 +234,37 @@ gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
       <id>central</id>
       <build>
         <plugins>
-          <!-- GPG 签名 -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
             <version>3.1.0</version>
             <executions>
               <execution>
-                <id>sign-artifacts</id>
                 <phase>verify</phase>
                 <goals>
                   <goal>sign</goal>
                 </goals>
-                <configuration>
-                  <gpgArguments>
-                    <arg>--pinentry-mode</arg>
-                    <arg>loopback</arg>
-                  </gpgArguments>
-                </configuration>
               </execution>
             </executions>
           </plugin>
-          
-          <!-- 源码 JAR -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
             <version>3.3.0</version>
             <executions>
               <execution>
-                <id>attach-sources</id>
                 <goals>
                   <goal>jar-no-fork</goal>
                 </goals>
               </execution>
             </executions>
           </plugin>
-          
-          <!-- Javadoc JAR -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
             <version>3.6.3</version>
             <executions>
               <execution>
-                <id>attach-javadocs</id>
                 <goals>
                   <goal>jar</goal>
                 </goals>
@@ -422,156 +275,36 @@ gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
       </build>
     </profile>
   </profiles>
-  
-  <!-- 测试覆盖率 -->
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.11</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>report</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>target/jacoco-results</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>
 ```
 
-## 🎯 最佳实践
+## 故障排除
 
-1. **使用语义化版本** - 使用 `v1.0.0`、`v1.0.1` 等标签发布
-2. **获取完整历史** - 使用 `fetch-depth: 0` 以生成准确的发布说明
-3. **设置适当的权限** - 确保工作流具有必要的权限
-4. **保持密钥安全** - 永远不要将密钥提交到仓库
-5. **发布前测试** - 在创建发布标签之前运行 CI 测试
-6. **记录您的发布** - 使用清晰的提交消息以生成发布说明
-7. **缓存依赖项** - 缓存是自动的，可加快构建速度
+**GPG 错误**
+- 验证密钥格式（包含 BEGIN/END 行）
+- 检查密码
+- 确保公钥已上传
 
-## 🔧 故障排除
+**Maven Central 失败**
+- 验证 OSSRH 凭据
+- 检查命名空间批准
+- 确保 POM 中包含所有必需元数据
 
-### GPG 错误导致发布失败
+**GitHub Pages 失败**
+- 在仓库设置中启用 Pages
+- 设置源为 "GitHub Actions"
+- 验证 `deploy-pages: 'true'`
 
-* 确保 GPG 密钥格式正确（包含 BEGIN/END 行）
-* 验证密码短语是否正确
-* 检查公钥是否已上传到密钥服务器
+**测试失败**
+- 本地运行：`mvn clean verify`
+- 紧急情况使用 `skip-tests: 'true'`（不推荐）
 
-### Maven Central 部署失败
+## 许可证
 
-* 验证 OSSRH 凭据是否正确
-* 检查命名空间是否已批准
-* 确保 POM 中包含所有必需的元数据
-* 验证构件是否正确签名
+MIT License - 详见 [LICENSE](LICENSE)
 
-### GitHub Pages 部署失败
+## 链接
 
-* 在仓库设置中启用 GitHub Pages
-* 将 Pages 源设置为 "GitHub Actions"
-* 验证 `deploy-pages` 设置为 `'true'`
-* 检查 `target/staging` 目录是否存在
-
-### 发布期间测试失败
-
-* 首先在本地运行测试：`mvn clean verify`
-* 检查 Actions 构件中的测试报告
-* 在紧急发布时使用 `skip-tests: 'true'`（不推荐）
-
-## 📊 GitHub Actions 摘要
-
-此 Action 生成全面的摘要，包括：
-
-* 版本信息
-* 构建环境详情
-* 项目元数据
-* 测试结果（如果运行）
-* 生成的构件列表
-* 部署状态
-* 快速链接：
-  * Maven Central 构件
-  * 文档站点
-
-## 🔄 版本策略
-
-### 推荐工作流
-
-1. 在功能分支上开发功能
-2. 合并到 `main` 分支
-3. 创建发布标签：`git tag -a v1.0.0 -m "Release 1.0.0"`
-4. 推送标签：`git push origin v1.0.0`
-5. GitHub Actions 自动处理其余部分
-
-### 版本格式
-
-支持语义化版本：
-* `v1.0.0` - 稳定版本
-* `v1.0.0-beta.1` - Beta 版本
-* `v1.0.0-RC1` - 候选发布版本
-* `v2.0.0-SNAPSHOT` - 快照版本（不推荐用于发布）
-
-## 🧪 本地测试
-
-此仓库包含一个用于本地验证的测试 Maven 项目：
-
-```bash
-# 运行本地测试套件
-./test-local.sh
-
-# 或手动测试 Maven 项目
-cd test-project
-mvn clean verify
-
-# 不运行测试的测试
-mvn clean install -DskipTests
-
-# 仅编译
-mvn clean compile
-```
-
-测试项目包括：
-
-* 带 JUnit 5 测试的简单 Calculator 类
-* JaCoCo 代码覆盖率配置
-* 所有标准 Maven 生命周期阶段
-* 兼容 Java 8+
-
-## 📝 许可证
-
-MIT License - 详见 [LICENSE](LICENSE) 文件
-
-## 🤝 贡献
-
-欢迎贡献！请随时提交 Pull Request。
-
-## 📧 支持
-
-如有问题和疑问：
-* GitHub Issues: https://github.com/chensoul/maven-deploy-action/issues
-* 文档: https://github.com/chensoul/maven-deploy-action
-
-## 🙏 致谢
-
-* 受 [maven-build-action](https://github.com/rosestack/maven-build-action) 启发
-* 使用 [actions/setup-java](https://github.com/actions/setup-java)
-* 使用 [peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages)
-
-## 🔗 相关 Actions
-
-* [maven-build-action](https://github.com/rosestack/maven-build-action) - Maven 构建和测试
-* [setup-java](https://github.com/actions/setup-java) - Java 环境设置
-* [upload-artifact](https://github.com/actions/upload-artifact) - 构件管理
-
+- [Issues](https://github.com/chensoul/maven-deploy-action/issues)
+- [maven-build-action](https://github.com/rosestack/maven-build-action)
+- [actions/setup-java](https://github.com/actions/setup-java)

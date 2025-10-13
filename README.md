@@ -2,33 +2,19 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A comprehensive GitHub composite action for deploying Maven projects to Maven Central and GitHub Pages.
+A GitHub Action for deploying Maven projects to Maven Central and GitHub Pages.
 
-## ✨ Features
+## Features
 
-* 🚀 **Complete Deployment Workflow** - One action to handle entire deployment process
-* 📦 **Maven Central Deployment** - Automated deployment with GPG signing
-* 📚 **Documentation Publishing** - Deploy Maven site to GitHub Pages
-* 🧪 **Testing & Coverage** - Run tests with JaCoCo coverage
-* 🔐 **Secure Signing** - GPG signing of all artifacts
-* 🎯 **Flexible Configuration** - Customize every aspect of the release
-* 📁 **Multi-module Support** - Works with submodules via working directory
-* ⚡ **High Performance** - Single build process, no redundant steps
+* 🚀 **Maven Central Deployment** - Automated deployment with GPG signing
+* 📚 **GitHub Pages** - Deploy Maven site documentation
+* 🧪 **Testing & Coverage** - JaCoCo integration
+* ⚡ **High Performance** - Single build process, no redundancy
 
-## 📋 Prerequisites
-
-* A Maven project configured for Maven Central deployment
-* GPG key for signing artifacts
-* Maven Central (OSSRH) account
-* GitHub Actions enabled on your repository
-* Java 8 or later
-
-## 🚀 Quick Start
-
-### Minimal Setup
+## Quick Start
 
 ```yaml
-name: Release
+name: Deploy
 
 on:
   push:
@@ -36,13 +22,12 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Release to Maven Central
-        uses: rosestack/maven-deploy-action@main
+      - uses: chensoul/maven-deploy-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -51,164 +36,116 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### Full-Featured Release
+## Inputs
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `java-version` | Java version | No | `8` |
+| `java-distribution` | Java distribution | No | `zulu` |
+| `server-id` | Maven server ID | No | `central` |
+| `maven-args` | Additional Maven arguments | No | `-ntp -U -B` |
+| `gpg-private-key` | GPG private key for signing | Yes* | - |
+| `gpg-passphrase` | GPG passphrase | Yes* | - |
+| `maven-username` | Maven Central username | Yes* | - |
+| `maven-password` | Maven Central password | Yes* | - |
+| `github-token` | GitHub token for Pages | No** | `''` |
+| `skip-tests` | Skip tests | No | `false` |
+| `deploy-pages` | Deploy to GitHub Pages | No | `true` |
+| `working-directory` | Maven working directory | No | `.` |
+
+\* Required for Maven Central deployment  
+\*\* Required only if `deploy-pages: 'true'`
+
+## Outputs
+
+| Output | Description |
+|--------|-------------|
+| `version` | Deployed version |
+| `deployed` | Whether deployment succeeded |
+
+## Examples
+
+### Maven Central Only
 
 ```yaml
-- name: Complete Release
-  uses: rosestack/maven-deploy-action@main
+- uses: chensoul/maven-deploy-action@v1
   with:
-    java-version: '17'
-    java-distribution: 'temurin'
-    server-id: 'central'
+    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
+    deploy-pages: 'false'
+```
+
+### With GitHub Pages
+
+```yaml
+- uses: chensoul/maven-deploy-action@v1
+  with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
     maven-username: ${{ secrets.MAVEN_USERNAME }}
     maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    skip-tests: 'false'
-    deploy-pages: 'true'
 ```
 
-## 📖 Inputs
-
-| Input             | Description                              | Required | Default |
-|-------------------|------------------------------------------|----------|---------|
-| java-version      | Java version to use                      | No       | 8       |
-| java-distribution | Java distribution (temurin, zulu, etc.)  | No       | zulu    |
-| server-id         | Maven server ID for deployment           | No       | central |
-| maven-args        | Additional Maven arguments               | No       | -ntp -U -B |
-| gpg-private-key   | GPG private key for signing              | **Yes*** | -       |
-| gpg-passphrase    | GPG passphrase                           | **Yes*** | -       |
-| maven-username    | Maven Central username                   | **Yes*** | -       |
-| maven-password    | Maven Central password                   | **Yes*** | -       |
-| github-token      | GitHub token for deploying pages         | No**     | ''      |
-| skip-tests        | Skip running tests                       | No       | false   |
-| deploy-pages      | Deploy documentation to GitHub Pages     | No       | true    |
-| working-directory | Working directory for Maven              | No       | .       |
-
-**\*** Required for Maven Central deployment  
-**\*\*** Required only if `deploy-pages: 'true'`
-
-### Java Version Selection
-
-The default Java version is **8** for maximum compatibility:
+### Skip Tests
 
 ```yaml
-# Default (Java 8) - Maximum compatibility
-- uses: rosestack/maven-deploy-action@main
-
-# Modern projects (Java 11+)
-- uses: rosestack/maven-deploy-action@main
+- uses: chensoul/maven-deploy-action@v1
   with:
-    java-version: '17'  # or '11', '21'
-```
-
-**When to use different versions:**
-- **Java 8** (default): Libraries targeting wide audience, legacy projects
-- **Java 11**: Projects using Java 11+ features, maintaining LTS compatibility  
-- **Java 17**: Modern projects, current LTS with long-term support
-- **Java 21**: Latest LTS, cutting-edge features
-
-### Required Secrets by Feature
-
-| Feature | Required Secrets |
-|---------|------------------|
-| **Maven Central Deployment** (core) | `gpg-private-key`, `gpg-passphrase`, `maven-username`, `maven-password` |
-| **GitHub Pages** (optional) | `github-token` |
-
-## 📤 Outputs
-
-| Output      | Description                              |
-|-------------|------------------------------------------|
-| version     | The version that was deployed            |
-| deployed    | Whether artifacts were deployed          |
-
-## 💡 Usage Examples
-
-### Example 1: Minimal Setup (Maven Central Only)
-
-If you only want to deploy to Maven Central without GitHub Pages:
-
-```yaml
-- name: Deploy to Maven Central
-  uses: rosestack/maven-deploy-action@main
-  with:
-    java-version: '17'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
     maven-username: ${{ secrets.MAVEN_USERNAME }}
     maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    # No github-token needed if you disable pages:
+    skip-tests: 'true'
     deploy-pages: 'false'
 ```
 
-### Example 2: Release on Tag Push (Full Features)
+### Submodule
 
 ```yaml
-name: Release
-
-on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
-      
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Release
-        uses: rosestack/maven-deploy-action@main
-        with:
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          maven-username: ${{ secrets.MAVEN_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_PASSWORD }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+- uses: chensoul/maven-deploy-action@v1
+  with:
+    working-directory: './backend'
+    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
 ```
 
-### Example 3: Manual Release with Workflow Dispatch
+### Manual Deploy Workflow
 
 ```yaml
-name: Manual Release
+name: Manual Deploy
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., 1.0.0)'
+        description: 'Version (e.g., 1.0.0)'
         required: true
       skip-tests:
-        description: 'Skip tests'
         type: boolean
         default: false
 
 jobs:
-  release:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Update POM version
+      - name: Update version and tag
         run: |
           mvn versions:set -DnewVersion=${{ github.event.inputs.version }}
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add pom.xml
           git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
-          git tag -a "v${{ github.event.inputs.version }}" -m "Release v${{ github.event.inputs.version }}"
+          git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
           git push origin "v${{ github.event.inputs.version }}"
       
-      - name: Release
-        uses: rosestack/maven-deploy-action@main
+      - uses: chensoul/maven-deploy-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -218,112 +155,42 @@ jobs:
           skip-tests: ${{ github.event.inputs.skip-tests }}
 ```
 
-### Example 4: Release with Code Coverage
+## Setup
 
-```yaml
-- name: Release with Coverage
-  id: release
-  uses: rosestack/maven-deploy-action@main
-  with:
-    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-
-- name: Check Deployment Status
-  run: |
-    echo "Deployed Version: ${{ steps.release.outputs.version }}"
-    echo "Deployment Status: ${{ steps.release.outputs.deployed }}"
-```
-
-### Example 5: Fast Release (Skip Tests)
-
-```yaml
-- name: Fast Release
-  uses: rosestack/maven-deploy-action@main
-  with:
-    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    skip-tests: 'true'
-    deploy-pages: 'false'
-```
-
-### Example 6: Release Submodule
-
-```yaml
-- name: Release Backend Module
-  uses: rosestack/maven-deploy-action@main
-  with:
-    working-directory: './backend'
-    gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-    gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-```
-
-### Example 7: Multi-Java Version Release
-
-```yaml
-strategy:
-  matrix:
-    java: ['11', '17', '21']
-steps:
-  - name: Release on Java ${{ matrix.java }}
-    uses: rosestack/maven-deploy-action@main
-    with:
-      java-version: ${{ matrix.java }}
-      gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-      gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-      maven-username: ${{ secrets.MAVEN_USERNAME }}
-      maven-password: ${{ secrets.MAVEN_PASSWORD }}
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-```
-
-## 🔐 Setting Up Secrets
-
-### 1. GPG Key Setup
+### 1. GPG Key
 
 ```bash
-# Generate GPG key (if you don't have one)
+# Generate key
 gpg --full-generate-key
 
 # Export private key
 gpg --armor --export-secret-keys YOUR_KEY_ID > private-key.asc
 
-# Export public key
-gpg --armor --export YOUR_KEY_ID > public-key.asc
-
-# Upload public key to key servers
+# Upload public key
 gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
-gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
 ```
 
 Add to GitHub Secrets:
 - `GPG_PRIVATE_KEY`: Content of `private-key.asc`
-- `GPG_PASSPHRASE`: Your GPG key passphrase
+- `GPG_PASSPHRASE`: Your GPG passphrase
 
-### 2. Maven Central (OSSRH) Setup
+### 2. Maven Central
 
 1. Create account at https://central.sonatype.com
 2. Request namespace (e.g., `io.github.yourusername`)
 3. Generate User Token
 
 Add to GitHub Secrets:
-- `MAVEN_USERNAME`: Your OSSRH username or token username
-- `MAVEN_PASSWORD`: Your OSSRH password or token password
+- `MAVEN_USERNAME`: OSSRH username or token
+- `MAVEN_PASSWORD`: OSSRH password or token
 
 ### 3. GitHub Token
 
-Use the default `${{ secrets.GITHUB_TOKEN }}` or create a Personal Access Token with `contents: write` permission.
+Use `${{ secrets.GITHUB_TOKEN }}` or create a PAT with `contents: write` permission.
 
-## 📝 Maven POM Configuration
+## Maven POM
 
-Your `pom.xml` should include:
+Your `pom.xml` needs:
 
 ```xml
 <project>
@@ -331,7 +198,7 @@ Your `pom.xml` should include:
   <artifactId>your-project</artifactId>
   <version>1.0.0</version>
   
-  <!-- Required metadata for Maven Central -->
+  <!-- Required metadata -->
   <name>Your Project</name>
   <description>Project description</description>
   <url>https://github.com/yourusername/your-project</url>
@@ -346,13 +213,12 @@ Your `pom.xml` should include:
   <developers>
     <developer>
       <name>Your Name</name>
-      <email>your.email@example.com</email>
+      <email>your@email.com</email>
     </developer>
   </developers>
   
   <scm>
     <connection>scm:git:git://github.com/yourusername/your-project.git</connection>
-    <developerConnection>scm:git:ssh://github.com:yourusername/your-project.git</developerConnection>
     <url>https://github.com/yourusername/your-project</url>
   </scm>
   
@@ -368,51 +234,37 @@ Your `pom.xml` should include:
       <id>central</id>
       <build>
         <plugins>
-          <!-- GPG Signing -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
             <version>3.1.0</version>
             <executions>
               <execution>
-                <id>sign-artifacts</id>
                 <phase>verify</phase>
                 <goals>
                   <goal>sign</goal>
                 </goals>
-                <configuration>
-                  <gpgArguments>
-                    <arg>--pinentry-mode</arg>
-                    <arg>loopback</arg>
-                  </gpgArguments>
-                </configuration>
               </execution>
             </executions>
           </plugin>
-          
-          <!-- Source JAR -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
             <version>3.3.0</version>
             <executions>
               <execution>
-                <id>attach-sources</id>
                 <goals>
                   <goal>jar-no-fork</goal>
                 </goals>
               </execution>
             </executions>
           </plugin>
-          
-          <!-- Javadoc JAR -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
             <version>3.6.3</version>
             <executions>
               <execution>
-                <id>attach-javadocs</id>
                 <goals>
                   <goal>jar</goal>
                 </goals>
@@ -423,129 +275,36 @@ Your `pom.xml` should include:
       </build>
     </profile>
   </profiles>
-  
-  <!-- For test coverage -->
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.11</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>report</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>target/jacoco-results</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>
 ```
 
-## 🎯 Best Practices
+## Troubleshooting
 
-1. **Use Semantic Versioning** - Tag releases with `v1.0.0`, `v1.0.1`, etc.
-2. **Fetch Full History** - Use `fetch-depth: 0` for accurate release notes
-3. **Set Proper Permissions** - Ensure workflow has necessary permissions
-4. **Keep Secrets Secure** - Never commit secrets to repository
-5. **Test Before Release** - Run CI tests before creating release tags
-6. **Document Your Release** - Use clear commit messages for release notes
-7. **Cache Dependencies** - Caching is automatic, speeds up builds
+**GPG Error**
+- Verify key format (include BEGIN/END lines)
+- Check passphrase
+- Ensure public key is uploaded
 
-## 🔧 Troubleshooting
+**Maven Central Fails**
+- Verify OSSRH credentials
+- Check namespace approval
+- Ensure all required metadata in POM
 
-### Release Fails with GPG Error
+**GitHub Pages Fails**
+- Enable Pages in repository settings
+- Set source to "GitHub Actions"
+- Verify `deploy-pages: 'true'`
 
-* Ensure GPG key is properly formatted (include BEGIN/END lines)
-* Verify passphrase is correct
-* Check that public key is uploaded to key servers
+**Tests Fail**
+- Run locally: `mvn clean verify`
+- Use `skip-tests: 'true'` for emergencies (not recommended)
 
-### Maven Central Deployment Fails
+## License
 
-* Verify OSSRH credentials are correct
-* Check that namespace is approved
-* Ensure all required metadata is in POM
-* Verify artifacts are properly signed
+MIT License - see [LICENSE](LICENSE)
 
-### GitHub Pages Deployment Fails
+## Links
 
-* Enable GitHub Pages in repository settings
-* Set Pages source to "GitHub Actions"
-* Verify `deploy-pages` is set to `'true'`
-* Check that `target/staging` directory exists
-
-### Tests Fail During Release
-
-* Run tests locally first: `mvn clean verify`
-* Check test reports in Actions artifacts
-* Use `skip-tests: 'true'` for emergency releases (not recommended)
-
-## 📊 GitHub Actions Summary
-
-This action generates comprehensive summaries including:
-
-* Version information
-* Build environment details
-* Project metadata
-* Test results (if run)
-* Generated artifacts list
-* Deployment status
-* Quick links to:
-  * Maven Central artifact
-  * Documentation site
-
-## 🔄 Version Strategy
-
-### Recommended Workflow
-
-1. Develop features on feature branches
-2. Merge to `main` branch
-3. Create release tag: `git tag -a v1.0.0 -m "Release 1.0.0"`
-4. Push tag: `git push origin v1.0.0`
-5. GitHub Actions automatically handles the rest
-
-### Version Format
-
-Supports semantic versioning:
-* `v1.0.0` - Stable release
-* `v1.0.0-beta.1` - Beta release
-* `v1.0.0-RC1` - Release candidate
-* `v2.0.0-SNAPSHOT` - Snapshot (not recommended for releases)
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file for details
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📧 Support
-
-For issues and questions:
-* GitHub Issues: https://github.com/chensoul/maven-deploy-action/issues
-* Documentation: https://github.com/chensoul/maven-deploy-action
-
-## 🙏 Acknowledgments
-
-* Inspired by [maven-build-action](https://github.com/rosestack/maven-build-action)
-* Uses [actions/setup-java](https://github.com/actions/setup-java)
-* Uses [peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages)
-
-## 🔗 Related Actions
-
-* [maven-build-action](https://github.com/rosestack/maven-build-action) - Maven build and test
-* [setup-java](https://github.com/actions/setup-java) - Java environment setup
-* [upload-artifact](https://github.com/actions/upload-artifact) - Artifact management
+- [Issues](https://github.com/chensoul/maven-deploy-action/issues)
+- [maven-build-action](https://github.com/rosestack/maven-build-action)
+- [actions/setup-java](https://github.com/actions/setup-java)
