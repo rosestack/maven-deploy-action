@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Local test script for maven-release-action
+# Local test script for maven-deploy-action
 # This script validates the test project works correctly
 
 set -e

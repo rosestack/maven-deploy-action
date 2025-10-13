@@ -7,6 +7,7 @@ branding:
   color: 'blue'
 
 inputs:
+  # Java Environment
   java-version:
     description: 'Java version to use'
     default: '8'
@@ -15,6 +16,8 @@ inputs:
     description: 'Java distribution'
     default: 'zulu'
     required: false
+  
+  # Maven Configuration
   server-id:
     description: 'Maven server ID for deployment (matches <server><id> in settings.xml or pom.xml)'
     default: 'central'
@@ -23,22 +26,38 @@ inputs:
     description: 'Additional Maven arguments'
     default: '-ntp -U -B'
     required: false
-  gpg-private-key:
-    description: 'GPG private key for signing'
-    required: true
-  gpg-passphrase:
-    description: 'GPG passphrase'
-    required: true
+  maven-profiles:
+    description: 'Maven profiles to activate (comma-separated, e.g., central,release)'
+    default: 'central'
+    required: false
+  working-directory:
+    description: 'Working directory for Maven'
+    default: '.'
+    required: false
+  
+  # Maven Central Credentials
   maven-username:
     description: 'Maven Central username'
     required: true
   maven-password:
     description: 'Maven Central password'
     required: true
+  
+  # GPG Signing
+  gpg-private-key:
+    description: 'GPG private key for signing'
+    required: true
+  gpg-passphrase:
+    description: 'GPG passphrase'
+    required: true
+  
+  # GitHub Configuration
   github-token:
-    description: 'GitHub token for creating releases and deploying pages'
+    description: 'GitHub token for deploying pages'
     required: false
     default: ''
+  
+  # Build Options
   skip-tests:
     description: 'Skip running tests'
     default: 'false'
@@ -46,10 +65,6 @@ inputs:
   deploy-pages:
     description: 'Deploy documentation to GitHub Pages'
     default: 'true'
-    required: false
-  working-directory:
-    description: 'Working directory for Maven'
-    default: '.'
     required: false
 
 outputs:
@@ -106,7 +121,12 @@ runs:
         SKIP_TESTS_FLAG=""
         [ "${{ inputs.skip-tests }}" == "true" ] && SKIP_TESTS_FLAG="-DskipTests"
         
-        mvn clean deploy site site:stage -Pcentral ${SKIP_TESTS_FLAG} ${{ inputs.maven-args }}
+        PROFILES_FLAG=""
+        if [ -n "${{ inputs.maven-profiles }}" ]; then
+          PROFILES_FLAG="-P${{ inputs.maven-profiles }}"
+        fi
+        
+        mvn clean deploy site site:stage ${PROFILES_FLAG} ${SKIP_TESTS_FLAG} ${{ inputs.maven-args }}
         echo "deployed=true" >> $GITHUB_OUTPUT
       env:
         MAVEN_USERNAME: ${{ inputs.maven-username }}

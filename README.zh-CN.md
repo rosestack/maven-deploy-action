@@ -44,6 +44,7 @@ jobs:
 | `java-distribution` | Java 发行版 | 否 | `zulu` |
 | `server-id` | Maven 服务器 ID | 否 | `central` |
 | `maven-args` | 额外的 Maven 参数 | 否 | `-ntp -U -B` |
+| `maven-profiles` | 要激活的 Maven profiles | 否 | `central` |
 | `gpg-private-key` | GPG 私钥 | 是* | - |
 | `gpg-passphrase` | GPG 密码 | 是* | - |
 | `maven-username` | Maven Central 用户名 | 是* | - |
@@ -301,7 +302,7 @@ gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
 
 ## 许可证
 
-MIT License - 详见 [LICENSE](LICENSE)
+Apache License 2.0 - 详见 [LICENSE](LICENSE)
 
 ## 链接
 

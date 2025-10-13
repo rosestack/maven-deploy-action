@@ -44,6 +44,7 @@ jobs:
 | `java-distribution` | Java distribution | No | `zulu` |
 | `server-id` | Maven server ID | No | `central` |
 | `maven-args` | Additional Maven arguments | No | `-ntp -U -B` |
+| `maven-profiles` | Maven profiles to activate | No | `central` |
 | `gpg-private-key` | GPG private key for signing | Yes* | - |
 | `gpg-passphrase` | GPG passphrase | Yes* | - |
 | `maven-username` | Maven Central username | Yes* | - |
@@ -301,7 +302,7 @@ Your `pom.xml` needs:
 
 ## License
 
-MIT License - see [LICENSE](LICENSE)
+Apache License 2.0 - see [LICENSE](LICENSE)
 
 ## Links
 
