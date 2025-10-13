@@ -59,6 +59,10 @@
     </dependencies>
 
     <distributionManagement>
+        <site>
+            <id>github</id>
+            <url>https:/rosestack.github.io/maven-release-action</url>
+        </site>
         <repository>
             <id>central</id>
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
@@ -125,6 +129,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <version>3.5.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.4</version>
             </plugin>
         </plugins>
     </build>
