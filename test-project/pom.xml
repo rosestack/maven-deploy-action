@@ -12,21 +12,29 @@
     <name>Test Project</name>
     <description>A sample project for testing</description>
 
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>https://opensource.org/licenses/MIT</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+    <organization>
+        <name>RoseStack, Inc.</name>
+        <url>https://blog.chensoul.cc</url>
+    </organization>
 
     <developers>
         <developer>
             <id>chensoul</id>
-            <name>Chen Soul</name>
+            <name>Chensoul</name>
             <email>ichensoul@gmail.com</email>
+            <roles>
+                <role>Project lead</role>
+            </roles>
         </developer>
     </developers>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <scm>
         <connection>scm:git:git://github.com/chensoul/maven-release-action.git</connection>

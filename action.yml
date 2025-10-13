@@ -83,6 +83,15 @@ runs:
         
         echo "version=${TAG_NAME}" >> $GITHUB_OUTPUT
         echo "Release version: ${TAG_NAME}"
+        
+        # Check if this is a SNAPSHOT version
+        if [[ "$TAG_NAME" =~ -SNAPSHOT$ ]]; then
+          echo "is_snapshot=true" >> $GITHUB_OUTPUT
+          echo "⚠️  SNAPSHOT version detected: ${TAG_NAME}"
+          echo "📦 GitHub Release and Pages deployment will be skipped for SNAPSHOT versions"
+        else
+          echo "is_snapshot=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Set up JDK ${{ inputs.java-version }}
       uses: actions/setup-java@v5
@@ -113,7 +122,7 @@ runs:
 
     - name: Create GitHub Release
       id: release
-      if: inputs.create-release == 'true' && startsWith(github.ref, 'refs/tags/') && inputs.github-token != ''
+      if: inputs.create-release == 'true' && startsWith(github.ref, 'refs/tags/') && inputs.github-token != '' && steps.version.outputs.is_snapshot != 'true'
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
@@ -129,7 +138,7 @@ runs:
         echo "url=https://github.com/${{ github.repository }}/releases/tag/v${VERSION}" >> $GITHUB_OUTPUT
 
     - name: Deploy to GitHub Pages
-      if: inputs.deploy-pages == 'true' && inputs.github-token != ''
+      if: inputs.deploy-pages == 'true' && inputs.github-token != '' && steps.version.outputs.is_snapshot != 'true'
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ inputs.github-token }}
