@@ -48,8 +48,8 @@ jobs:
           java-version: '17'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          maven-username: ${{ secrets.MAVEN_USERNAME }}
+          maven-password: ${{ secrets.MAVEN_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -63,8 +63,8 @@ jobs:
     java-distribution: 'temurin'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
     skip-tests: 'false'
     deploy-pages: 'true'
@@ -141,8 +141,8 @@ jobs:
     java-version: '17'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     # 禁用这些功能时无需 github-token：
     create-release: 'false'
     deploy-pages: 'false'
@@ -176,8 +176,8 @@ jobs:
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          maven-username: ${{ secrets.MAVEN_USERNAME }}
+          maven-password: ${{ secrets.MAVEN_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -218,8 +218,8 @@ jobs:
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          maven-username: ${{ secrets.MAVEN_USERNAME }}
+          maven-password: ${{ secrets.MAVEN_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           skip-tests: ${{ github.event.inputs.skip-tests }}
 ```
@@ -233,8 +233,8 @@ jobs:
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
 
 - name: 检查发布状态
@@ -252,8 +252,8 @@ jobs:
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
     skip-tests: 'true'
     deploy-pages: 'false'
@@ -268,8 +268,8 @@ jobs:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -286,8 +286,8 @@ steps:
       java-version: ${{ matrix.java }}
       gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
       gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-      maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-      maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      maven-username: ${{ secrets.MAVEN_USERNAME }}
+      maven-password: ${{ secrets.MAVEN_PASSWORD }}
       github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -321,8 +321,8 @@ gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
 3. 生成用户令牌
 
 添加到 GitHub Secrets：
-- `MAVEN_CENTRAL_USERNAME`: OSSRH 用户名或令牌用户名
-- `MAVEN_CENTRAL_PASSWORD`: OSSRH 密码或令牌密码
+- `MAVEN_USERNAME`: OSSRH 用户名或令牌用户名
+- `MAVEN_PASSWORD`: OSSRH 密码或令牌密码
 
 ### 3. GitHub Token
 

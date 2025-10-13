@@ -47,8 +47,8 @@ jobs:
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          maven-username: ${{ secrets.MAVEN_USERNAME }}
+          maven-password: ${{ secrets.MAVEN_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -63,8 +63,8 @@ jobs:
     server-id: 'central'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
     skip-tests: 'false'
     deploy-pages: 'true'
@@ -141,8 +141,8 @@ If you only want to deploy to Maven Central without GitHub Release or Pages:
     java-version: '17'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     # No github-token needed if you disable these:
     create-release: 'false'
     deploy-pages: 'false'
@@ -176,8 +176,8 @@ jobs:
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          maven-username: ${{ secrets.MAVEN_USERNAME }}
+          maven-password: ${{ secrets.MAVEN_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -218,8 +218,8 @@ jobs:
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          maven-username: ${{ secrets.MAVEN_USERNAME }}
+          maven-password: ${{ secrets.MAVEN_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           skip-tests: ${{ github.event.inputs.skip-tests }}
 ```
@@ -233,8 +233,8 @@ jobs:
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
 
 - name: Check Release Status
@@ -252,8 +252,8 @@ jobs:
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
     skip-tests: 'true'
     deploy-pages: 'false'
@@ -268,8 +268,8 @@ jobs:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-    maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    maven-username: ${{ secrets.MAVEN_USERNAME }}
+    maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -286,8 +286,8 @@ steps:
       java-version: ${{ matrix.java }}
       gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
       gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-      maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-      maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      maven-username: ${{ secrets.MAVEN_USERNAME }}
+      maven-password: ${{ secrets.MAVEN_PASSWORD }}
       github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -321,8 +321,8 @@ Add to GitHub Secrets:
 3. Generate User Token
 
 Add to GitHub Secrets:
-- `MAVEN_CENTRAL_USERNAME`: Your OSSRH username or token username
-- `MAVEN_CENTRAL_PASSWORD`: Your OSSRH password or token password
+- `MAVEN_USERNAME`: Your OSSRH username or token username
+- `MAVEN_PASSWORD`: Your OSSRH password or token password
 
 ### 3. GitHub Token
 
