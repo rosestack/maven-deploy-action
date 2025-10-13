@@ -6,7 +6,7 @@
 
     <groupId>io.github.rosestack</groupId>
     <artifactId>test-project</artifactId>
-    <version>1.0.0</version>
+    <version>0.0.1</version>
     <packaging>jar</packaging>
 
     <name>Test Project</name>
@@ -67,6 +67,10 @@
     </dependencies>
 
     <distributionManagement>
+        <site>
+            <id>github</id>
+            <url>https://github.com/chensoul/maven-release-action/test-project</url>
+        </site>
         <repository>
             <id>central</id>
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
