@@ -1,5 +1,10 @@
 # Maven Deploy Action
 
+[![GitHub release](https://img.shields.io/github/v/release/chensoul/maven-deploy-action)](https://github.com/chensoul/maven-deploy-action/releases)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/chensoul/maven-deploy-action/ci.yml?branch=main)](https://github.com/chensoul/maven-deploy-action/actions/workflows/test.yml)
+[![License](https://img.shields.io/github/license/chensoul/maven-deploy-action)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/chensoul/maven-deploy-action)](https://github.com/chensoul/maven-deploy-action/stargazers)
+
 [English](README.md) | 简体中文
 
 将 Maven 项目部署到 Maven Central 和 GitHub Pages 的 GitHub Action。
@@ -307,5 +312,5 @@ Apache License 2.0 - 详见 [LICENSE](LICENSE)
 ## 链接
 
 - [Issues](https://github.com/chensoul/maven-deploy-action/issues)
-- [maven-build-action](https://github.com/rosestack/maven-build-action)
+- [maven-deploy-action](https://github.com/rosestack/maven-deploy-action)
 - [actions/setup-java](https://github.com/actions/setup-java)
