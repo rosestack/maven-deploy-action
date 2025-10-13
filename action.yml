@@ -1,5 +1,6 @@
 name: 'Maven Release Action'
 description: 'Complete Maven release workflow with Maven Central deployment and GitHub Pages'
+author: 'chensoul'
 
 branding:
   icon: 'package'
@@ -8,7 +9,7 @@ branding:
 inputs:
   java-version:
     description: 'Java version to use'
-    default: '17'
+    default: '8'
     required: false
   java-distribution:
     description: 'Java distribution'
@@ -31,8 +32,9 @@ inputs:
     description: 'Maven Central password (OSSRH)'
     required: true
   github-token:
-    description: 'GitHub token for creating releases'
-    required: true
+    description: 'GitHub token for creating releases and deploying pages'
+    required: false
+    default: ''
   codecov-token:
     description: 'Codecov token for uploading coverage'
     required: false
@@ -49,6 +51,28 @@ inputs:
     description: 'Create GitHub Release'
     default: 'true'
     required: false
+  working-directory:
+    description: 'Working directory for Maven'
+    default: '.'
+    required: false
+  cache-key-prefix:
+    description: 'Maven cache key prefix'
+    default: 'maven-release'
+    required: false
+
+outputs:
+  release-version:
+    description: 'The version that was released'
+    value: ${{ steps.version.outputs.version }}
+  release-status:
+    description: 'Release status (success/failure)'
+    value: ${{ steps.final-status.outputs.status }}
+  artifacts-deployed:
+    description: 'Whether artifacts were deployed to Maven Central'
+    value: ${{ steps.deploy-status.outputs.deployed }}
+  release-url:
+    description: 'GitHub Release URL (if created)'
+    value: ${{ steps.github-release.outputs.url }}
 
 runs:
   using: 'composite'
@@ -56,20 +80,32 @@ runs:
     - name: Extract version from tag
       id: version
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
+        echo "## 🔍 Version Detection" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
         if [[ "$GITHUB_REF" =~ ^refs/tags/v(.+)$ ]]; then
           TAG_NAME="${BASH_REMATCH[1]}"
+          echo "- **Source**: Git tag" >> $GITHUB_STEP_SUMMARY
         else
           TAG_NAME=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "- **Source**: POM version" >> $GITHUB_STEP_SUMMARY
         fi
+        
         echo "version=${TAG_NAME}" >> $GITHUB_OUTPUT
-        echo "Release version: ${TAG_NAME}"
+        echo "- **Version**: \`${TAG_NAME}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         
         # 验证版本格式 (semver)
-        if [[ ! "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
-          echo "::error::Invalid version format: $TAG_NAME. Expected semver format (e.g., 1.0.0 or 1.0.0-beta)"
+        if [[ ! "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+          echo "::error::Invalid version format: $TAG_NAME. Expected semver format (e.g., 1.0.0 or 1.0.0-beta.1)"
+          echo "❌ **Status**: Invalid version format" >> $GITHUB_STEP_SUMMARY
           exit 1
         fi
+        
+        echo "✅ **Status**: Version validated" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
 
     - name: Set up JDK ${{ inputs.java-version }}
       uses: actions/setup-java@v5
@@ -85,15 +121,35 @@ runs:
 
     - name: Verify Maven version
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
+        echo "## 🛠️ Build Environment" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         mvn --version
-        echo "Project version from POM:"
-        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        GROUP_ID=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
+        ARTIFACT_ID=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+        
+        echo "### Project Information:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Group ID**: \`${GROUP_ID}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Artifact ID**: \`${ARTIFACT_ID}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **POM Version**: \`${POM_VERSION}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
 
     - name: Run tests with coverage
       if: inputs.skip-tests != 'true'
       shell: bash
-      run: mvn clean verify ${{ inputs.maven-args }}
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "## 🧪 Running Tests" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        mvn clean verify ${{ inputs.maven-args }}
+        echo "✅ Tests completed successfully" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
 
     - name: Generate test report
       if: inputs.skip-tests != 'true' && (success() || failure())
@@ -125,13 +181,27 @@ runs:
         token: ${{ inputs.codecov-token }}
 
     - name: Build and sign artifacts
+      id: deploy-status
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
+        echo "## 📦 Building and Signing Artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
         SKIP_TESTS_FLAG=""
         if [ "${{ inputs.skip-tests }}" == "true" ]; then
           SKIP_TESTS_FLAG="-DskipTests"
         fi
-        mvn deploy site site:stage ${SKIP_TESTS_FLAG} -Pcentral ${{ inputs.maven-args }}
+        
+        if mvn deploy site site:stage ${SKIP_TESTS_FLAG} -Pcentral ${{ inputs.maven-args }}; then
+          echo "deployed=true" >> $GITHUB_OUTPUT
+          echo "✅ Artifacts built and deployed successfully" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "deployed=false" >> $GITHUB_OUTPUT
+          echo "❌ Deployment failed" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
       env:
         MAVEN_USERNAME: ${{ inputs.maven-username }}
         MAVEN_PASSWORD: ${{ inputs.maven-password }}
@@ -139,68 +209,143 @@ runs:
 
     - name: Verify artifacts
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         echo "## 📦 Generated Artifacts" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         if [ -d target ]; then
-          echo "### JAR Files:" >> $GITHUB_STEP_SUMMARY
-          find target -maxdepth 1 -name "*.jar" -exec basename {} \; | while read file; do
-            echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
-          done
+          JAR_COUNT=$(find target -maxdepth 1 -name "*.jar" | wc -l)
+          POM_COUNT=$(find target -maxdepth 1 -name "*.pom" | wc -l)
+          ASC_COUNT=$(find target -maxdepth 1 -name "*.asc" | wc -l)
           
+          echo "### Summary:" >> $GITHUB_STEP_SUMMARY
+          echo "- JAR files: ${JAR_COUNT}" >> $GITHUB_STEP_SUMMARY
+          echo "- POM files: ${POM_COUNT}" >> $GITHUB_STEP_SUMMARY
+          echo "- Signature files: ${ASC_COUNT}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### POM Files:" >> $GITHUB_STEP_SUMMARY
-          find target -maxdepth 1 -name "*.pom" -exec basename {} \; | while read file; do
-            echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
-          done
           
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Signature Files:" >> $GITHUB_STEP_SUMMARY
-          find target -maxdepth 1 -name "*.asc" -exec basename {} \; | while read file; do
-            echo "- \`$file\` ✅" >> $GITHUB_STEP_SUMMARY
-          done
+          if [ $JAR_COUNT -gt 0 ]; then
+            echo "### JAR Files:" >> $GITHUB_STEP_SUMMARY
+            find target -maxdepth 1 -name "*.jar" -exec basename {} \; | while read file; do
+              echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ $POM_COUNT -gt 0 ]; then
+            echo "### POM Files:" >> $GITHUB_STEP_SUMMARY
+            find target -maxdepth 1 -name "*.pom" -exec basename {} \; | while read file; do
+              echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ $ASC_COUNT -gt 0 ]; then
+            echo "### Signature Files:" >> $GITHUB_STEP_SUMMARY
+            find target -maxdepth 1 -name "*.asc" -exec basename {} \; | while read file; do
+              echo "- \`$file\` ✅" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "⚠️ Target directory not found" >> $GITHUB_STEP_SUMMARY
         fi
 
     - name: Create GitHub Release
-      if: inputs.create-release == 'true' && startsWith(github.ref, 'refs/tags/')
+      id: github-release
+      if: inputs.create-release == 'true' && startsWith(github.ref, 'refs/tags/') && inputs.github-token != ''
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         VERSION=${{ steps.version.outputs.version }}
         
+        echo "## 🎉 Creating GitHub Release" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
         # 创建 GitHub Release（自动生成发布说明）
-        gh release create "v${VERSION}" \
+        RELEASE_URL=$(gh release create "v${VERSION}" \
           --title "v${VERSION}" \
           --generate-notes \
           target/*.jar \
           target/*.pom \
-          target/*.asc
+          target/*.asc 2>&1 | grep -oE 'https://github.com[^ ]+' | head -1)
+        
+        echo "url=${RELEASE_URL}" >> $GITHUB_OUTPUT
+        echo "- **Release**: [v${VERSION}](${RELEASE_URL})" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
 
     - name: Deploy to GitHub Pages
-      if: inputs.deploy-pages == 'true'
+      if: inputs.deploy-pages == 'true' && inputs.github-token != ''
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ inputs.github-token }}
-        publish_dir: ./target/staging
+        publish_dir: ${{ inputs.working-directory }}/target/staging
         commit_message: "docs: deploy documentation for version ${{ steps.version.outputs.version }}"
 
     - name: Generate release summary
+      id: final-status
       if: always()
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "### Configuration:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Java**: ${{ inputs.java-version }} (${{ inputs.java-distribution }})" >> $GITHUB_STEP_SUMMARY
-        echo "- **Tests**: ${{ inputs.skip-tests == 'true' && '⏭️ Skipped' || '✅ Executed' }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **GitHub Release**: ${{ inputs.create-release == 'true' && '✅ Created' || '⏭️ Skipped' }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **GitHub Pages**: ${{ inputs.deploy-pages == 'true' && '✅ Deployed' || '⏭️ Skipped' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Working Directory**: \`${{ inputs.working-directory }}\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Status:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Tests**: ${{ inputs.skip-tests == 'true' && '⏭️ Skipped' || '✅ Executed' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Artifacts Deployed**: ${{ steps.deploy-status.outputs.deployed == 'true' && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
+        
+        # GitHub Release status
+        if [ "${{ inputs.github-token }}" == "" ]; then
+          echo "- **GitHub Release**: ⏭️ Skipped (no token provided)" >> $GITHUB_STEP_SUMMARY
+        elif [ "${{ inputs.create-release }}" != "true" ]; then
+          echo "- **GitHub Release**: ⏭️ Skipped (disabled)" >> $GITHUB_STEP_SUMMARY
+        elif [[ "$GITHUB_REF" =~ ^refs/tags/ ]]; then
+          echo "- **GitHub Release**: ✅ Created" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **GitHub Release**: ⏭️ Skipped (not a tag)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # GitHub Pages status
+        if [ "${{ inputs.github-token }}" == "" ]; then
+          echo "- **GitHub Pages**: ⏭️ Skipped (no token provided)" >> $GITHUB_STEP_SUMMARY
+        elif [ "${{ inputs.deploy-pages }}" == "true" ]; then
+          echo "- **GitHub Pages**: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **GitHub Pages**: ⏭️ Skipped (disabled)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
         if [[ "$GITHUB_REF" =~ ^refs/tags/ ]]; then
+          GROUP_ID=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
+          ARTIFACT_ID=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+          
           echo "### 🔗 Links:" >> $GITHUB_STEP_SUMMARY
-          echo "- [Release Notes](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.version }})" >> $GITHUB_STEP_SUMMARY
-          echo "- [Maven Central](https://central.sonatype.com/artifact/$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)/$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)/${{ steps.version.outputs.version }})" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.create-release }}" == "true" ]; then
+            echo "- [Release Notes](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.version }})" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- [Maven Central](https://central.sonatype.com/artifact/${GROUP_ID}/${ARTIFACT_ID}/${{ steps.version.outputs.version }})" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.deploy-pages }}" == "true" ]; then
+            echo "- [Documentation](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Set final status
+        if [ "${{ steps.deploy-status.outputs.deployed }}" == "true" ]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "### ✅ Release Completed Successfully!" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "### ❌ Release Failed" >> $GITHUB_STEP_SUMMARY
         fi
 

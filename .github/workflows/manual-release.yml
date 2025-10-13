@@ -1,0 +1,97 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0 or 1.0.0-beta.1)'
+        required: true
+        type: string
+      skip-tests:
+        description: 'Skip tests'
+        required: false
+        type: boolean
+        default: false
+      deploy-pages:
+        description: 'Deploy documentation to GitHub Pages'
+        required: false
+        type: boolean
+        default: true
+      create-release:
+        description: 'Create GitHub Release'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  validate-version:
+    name: Validate Version
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate version format
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: X.Y.Z or X.Y.Z-qualifier (e.g., 1.0.0 or 1.0.0-beta.1)"
+            exit 1
+          fi
+          echo "✅ Version format is valid: $VERSION"
+
+  release:
+    name: Release
+    needs: validate-version
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Git
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+      
+      - name: Update POM version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          echo "📝 Updating POM version to $VERSION"
+          mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
+          
+          if [ -n "$(git status --porcelain)" ]; then
+            git add pom.xml
+            git commit -m "chore: bump version to $VERSION [skip ci]"
+          fi
+      
+      - name: Create and push tag
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          TAG="v$VERSION"
+          
+          echo "🏷️ Creating tag $TAG"
+          git tag -a "$TAG" -m "Release version $VERSION"
+          
+          echo "📤 Pushing tag to remote"
+          git push origin "$TAG"
+      
+      - name: Release to Maven Central
+        id: release
+        uses: chensoul/maven-release-action@main
+        with:
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
+          skip-tests: ${{ github.event.inputs.skip-tests }}
+          deploy-pages: ${{ github.event.inputs.deploy-pages }}
+          create-release: ${{ github.event.inputs.create-release }}
