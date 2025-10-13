@@ -37,9 +37,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/chensoul/maven-release-action.git</connection>
-        <developerConnection>scm:git:ssh://github.com:chensoul/maven-release-action.git</developerConnection>
-        <url>https://github.com/chensoul/maven-release-action/test-project</url>
+        <connection>scm:git:git://github.com/chensoul/maven-deploy-action.git</connection>
+        <developerConnection>scm:git:ssh://github.com:chensoul/maven-deploy-action.git</developerConnection>
+        <url>https://github.com/chensoul/maven-deploy-action/test-project</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -69,7 +69,7 @@
     <distributionManagement>
         <site>
             <id>github</id>
-            <url>https://github.com/chensoul/maven-release-action/test-project</url>
+            <url>https://github.com/chensoul/maven-deploy-action/test-project</url>
         </site>
         <repository>
             <id>central</id>

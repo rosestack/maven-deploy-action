@@ -1,5 +1,5 @@
-name: 'Maven Release Action'
-description: 'Complete Maven release workflow with Maven Central deployment and GitHub Pages'
+name: 'Maven Deploy Action'
+description: 'Deploy Maven artifacts to Maven Central and deploy documentation to GitHub Pages'
 author: 'chensoul'
 
 branding:
@@ -47,10 +47,6 @@ inputs:
     description: 'Deploy documentation to GitHub Pages'
     default: 'true'
     required: false
-  create-release:
-    description: 'Create GitHub Release'
-    default: 'true'
-    required: false
   working-directory:
     description: 'Working directory for Maven'
     default: '.'
@@ -58,14 +54,11 @@ inputs:
 
 outputs:
   version:
-    description: 'The version that was released'
+    description: 'The version that was deployed'
     value: ${{ steps.version.outputs.version }}
   deployed:
     description: 'Whether artifacts were deployed successfully'
     value: ${{ steps.deploy.outputs.deployed }}
-  release-url:
-    description: 'GitHub Release URL (if created)'
-    value: ${{ steps.release.outputs.url }}
 
 runs:
   using: 'composite'
@@ -119,23 +112,6 @@ runs:
         MAVEN_USERNAME: ${{ inputs.maven-username }}
         MAVEN_PASSWORD: ${{ inputs.maven-password }}
         MAVEN_GPG_PASSPHRASE: ${{ inputs.gpg-passphrase }}
-
-    - name: Create GitHub Release
-      id: release
-      if: inputs.create-release == 'true' && startsWith(github.ref, 'refs/tags/') && inputs.github-token != '' && steps.version.outputs.is_snapshot != 'true'
-      shell: bash
-      working-directory: ${{ inputs.working-directory }}
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
-      run: |
-        VERSION=${{ steps.version.outputs.version }}
-        
-        gh release create "v${VERSION}" \
-          --title "v${VERSION}" \
-          --generate-notes \
-          target/*.jar target/*.pom target/*.asc
-        
-        echo "url=https://github.com/${{ github.repository }}/releases/tag/v${VERSION}" >> $GITHUB_OUTPUT
 
     - name: Deploy to GitHub Pages
       if: inputs.deploy-pages == 'true' && inputs.github-token != '' && steps.version.outputs.is_snapshot != 'true'

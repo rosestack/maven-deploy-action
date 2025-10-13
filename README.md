@@ -1,14 +1,13 @@
-# Maven Release Action
+# Maven Deploy Action
 
 English | [简体中文](README.zh-CN.md)
 
-A comprehensive GitHub composite action for releasing Maven projects to Maven Central with automated GitHub Releases and Pages deployment.
+A comprehensive GitHub composite action for deploying Maven projects to Maven Central and GitHub Pages.
 
 ## ✨ Features
 
-* 🚀 **Complete Release Workflow** - One action to handle entire release process
+* 🚀 **Complete Deployment Workflow** - One action to handle entire deployment process
 * 📦 **Maven Central Deployment** - Automated deployment with GPG signing
-* 🏷️ **GitHub Releases** - Automatic release creation with artifacts
 * 📚 **Documentation Publishing** - Deploy Maven site to GitHub Pages
 * 🧪 **Testing & Coverage** - Run tests with JaCoCo coverage
 * 🔐 **Secure Signing** - GPG signing of all artifacts
@@ -43,7 +42,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Release to Maven Central
-        uses: chensoul/maven-release-action@v1
+        uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -56,7 +55,7 @@ jobs:
 
 ```yaml
 - name: Complete Release
-  uses: chensoul/maven-release-action@v1
+  uses: rosestack/maven-deploy-action@main
   with:
     java-version: '17'
     java-distribution: 'temurin'
@@ -68,7 +67,6 @@ jobs:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     skip-tests: 'false'
     deploy-pages: 'true'
-    create-release: 'true'
 ```
 
 ## 📖 Inputs
@@ -83,14 +81,13 @@ jobs:
 | gpg-passphrase    | GPG passphrase                           | **Yes*** | -       |
 | maven-username    | Maven Central username                   | **Yes*** | -       |
 | maven-password    | Maven Central password                   | **Yes*** | -       |
-| github-token      | GitHub token for releases and pages      | No**     | ''      |
+| github-token      | GitHub token for deploying pages         | No**     | ''      |
 | skip-tests        | Skip running tests                       | No       | false   |
 | deploy-pages      | Deploy documentation to GitHub Pages     | No       | true    |
-| create-release    | Create GitHub Release                    | No       | true    |
 | working-directory | Working directory for Maven              | No       | .       |
 
 **\*** Required for Maven Central deployment  
-**\*\*** Required only if `create-release: 'true'` or `deploy-pages: 'true'`
+**\*\*** Required only if `deploy-pages: 'true'`
 
 ### Java Version Selection
 
@@ -98,10 +95,10 @@ The default Java version is **8** for maximum compatibility:
 
 ```yaml
 # Default (Java 8) - Maximum compatibility
-- uses: chensoul/maven-release-action@v1
+- uses: rosestack/maven-deploy-action@main
 
 # Modern projects (Java 11+)
-- uses: chensoul/maven-release-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     java-version: '17'  # or '11', '21'
 ```
@@ -117,34 +114,31 @@ The default Java version is **8** for maximum compatibility:
 | Feature | Required Secrets |
 |---------|------------------|
 | **Maven Central Deployment** (core) | `gpg-private-key`, `gpg-passphrase`, `maven-username`, `maven-password` |
-| **GitHub Release** (optional) | `github-token` |
 | **GitHub Pages** (optional) | `github-token` |
 
 ## 📤 Outputs
 
 | Output      | Description                              |
 |-------------|------------------------------------------|
-| version     | The version that was released            |
+| version     | The version that was deployed            |
 | deployed    | Whether artifacts were deployed          |
-| release-url | GitHub Release URL (if created)          |
 
 ## 💡 Usage Examples
 
 ### Example 1: Minimal Setup (Maven Central Only)
 
-If you only want to deploy to Maven Central without GitHub Release or Pages:
+If you only want to deploy to Maven Central without GitHub Pages:
 
 ```yaml
 - name: Deploy to Maven Central
-  uses: chensoul/maven-release-action@v1
+  uses: rosestack/maven-deploy-action@main
   with:
     java-version: '17'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
     maven-username: ${{ secrets.MAVEN_USERNAME }}
     maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    # No github-token needed if you disable these:
-    create-release: 'false'
+    # No github-token needed if you disable pages:
     deploy-pages: 'false'
 ```
 
@@ -172,7 +166,7 @@ jobs:
           fetch-depth: 0
       
       - name: Release
-        uses: chensoul/maven-release-action@v1
+        uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -214,7 +208,7 @@ jobs:
           git push origin "v${{ github.event.inputs.version }}"
       
       - name: Release
-        uses: chensoul/maven-release-action@v1
+        uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -229,7 +223,7 @@ jobs:
 ```yaml
 - name: Release with Coverage
   id: release
-  uses: chensoul/maven-release-action@v1
+  uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -237,18 +231,17 @@ jobs:
     maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
 
-- name: Check Release Status
+- name: Check Deployment Status
   run: |
-    echo "Release Version: ${{ steps.release.outputs.version }}"
+    echo "Deployed Version: ${{ steps.release.outputs.version }}"
     echo "Deployment Status: ${{ steps.release.outputs.deployed }}"
-    echo "Release URL: ${{ steps.release.outputs.release-url }}"
 ```
 
 ### Example 5: Fast Release (Skip Tests)
 
 ```yaml
 - name: Fast Release
-  uses: chensoul/maven-release-action@v1
+  uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -263,7 +256,7 @@ jobs:
 
 ```yaml
 - name: Release Backend Module
-  uses: chensoul/maven-release-action@v1
+  uses: rosestack/maven-deploy-action@main
   with:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -281,7 +274,7 @@ strategy:
     java: ['11', '17', '21']
 steps:
   - name: Release on Java ${{ matrix.java }}
-    uses: chensoul/maven-release-action@v1
+    uses: rosestack/maven-deploy-action@main
     with:
       java-version: ${{ matrix.java }}
       gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -486,13 +479,6 @@ Your `pom.xml` should include:
 * Ensure all required metadata is in POM
 * Verify artifacts are properly signed
 
-### GitHub Release Not Created
-
-* Check that workflow runs on tag push
-* Verify `github-token` has `contents: write` permission
-* Ensure `create-release` is set to `'true'`
-* Confirm tag follows version pattern
-
 ### GitHub Pages Deployment Fails
 
 * Enable GitHub Pages in repository settings
@@ -517,7 +503,6 @@ This action generates comprehensive summaries including:
 * Generated artifacts list
 * Deployment status
 * Quick links to:
-  * GitHub Release
   * Maven Central artifact
   * Documentation site
 
@@ -550,8 +535,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📧 Support
 
 For issues and questions:
-* GitHub Issues: https://github.com/chensoul/maven-release-action/issues
-* Documentation: https://github.com/chensoul/maven-release-action
+* GitHub Issues: https://github.com/chensoul/maven-deploy-action/issues
+* Documentation: https://github.com/chensoul/maven-deploy-action
 
 ## 🙏 Acknowledgments
 

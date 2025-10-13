@@ -1,4 +1,4 @@
-name: Release to Maven Central
+name: Deploy to Maven Central
 
 on:
   push:
@@ -12,8 +12,8 @@ permissions:
   id-token: write
 
 jobs:
-  release:
-    name: Release
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
     
     steps:
@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0  # Required for generating release notes
       
-      - name: Release to Maven Central
+      - name: Deploy to Maven Central
         uses: ./
         with:
           working-directory: 'test-project'

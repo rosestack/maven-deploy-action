@@ -1,14 +1,13 @@
-# Maven Release Action
+# Maven Deploy Action
 
 [English](README.md) | 简体中文
 
-一个完整的 GitHub 复合 Action，用于将 Maven 项目发布到 Maven Central，并自动创建 GitHub Releases 和 Pages 部署。
+一个全面的 GitHub 复合 Action，用于将 Maven 项目部署到 Maven Central 和 GitHub Pages。
 
 ## ✨ 特性
 
-* 🚀 **完整的发布工作流** - 一个 Action 处理整个发布过程
+* 🚀 **完整的部署工作流** - 一个 Action 处理整个部署过程
 * 📦 **Maven Central 部署** - 自动部署并进行 GPG 签名
-* 🏷️ **GitHub Releases** - 自动创建包含构件的发布版本
 * 📚 **文档发布** - 将 Maven 站点部署到 GitHub Pages
 * 🧪 **测试与覆盖率** - 运行测试并集成 JaCoCo 覆盖率
 * 🔐 **安全签名** - 对所有构件进行 GPG 签名
@@ -42,8 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: 发布到 Maven Central
-        uses: chensoul/maven-release-action@v1
+      - name: Deploy to Maven Central
+        uses: rosestack/maven-deploy-action@main
         with:
           java-version: '17'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -56,8 +55,8 @@ jobs:
 ### 完整功能发布
 
 ```yaml
-- name: 完整发布
-  uses: chensoul/maven-release-action@v1
+- name: Deploy
+  uses: rosestack/maven-deploy-action@main
   with:
     java-version: '17'
     java-distribution: 'temurin'
@@ -68,7 +67,6 @@ jobs:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     skip-tests: 'false'
     deploy-pages: 'true'
-    create-release: 'true'
 ```
 
 ## 📖 输入参数
@@ -83,14 +81,13 @@ jobs:
 | gpg-passphrase    | GPG 密码短语                         | **是*** | -      |
 | maven-username    | Maven Central 用户名                 | **是*** | -      |
 | maven-password    | Maven Central 密码                   | **是*** | -      |
-| github-token      | 用于创建发布和部署页面的 GitHub token | 否**    | ''     |
+| github-token      | 用于部署页面的 GitHub token | 否**    | ''     |
 | skip-tests        | 跳过运行测试                         | 否   | false  |
 | deploy-pages      | 将文档部署到 GitHub Pages            | 否   | true   |
-| create-release    | 创建 GitHub Release                  | 否   | true   |
 | working-directory | Maven 的工作目录                     | 否   | .      |
 
 **\*** Maven Central 部署必需  
-**\*\*** 仅在 `create-release: 'true'` 或 `deploy-pages: 'true'` 时需要
+**\*\*** 仅在 `deploy-pages: 'true'` 时需要
 
 ### Java 版本选择
 
@@ -98,17 +95,16 @@ jobs:
 
 ```yaml
 # 默认（Java 8）- 最大兼容性
-- uses: chensoul/maven-release-action@v1
+- uses: rosestack/maven-deploy-action@main
 
-# 现代项目（Java 11+）
-- uses: chensoul/maven-release-action@v1
+# 现代项目
+- uses: rosestack/maven-deploy-action@main
   with:
-    java-version: '17'  # 或 '11', '21'
+    java-version: '17'  # 或 '21'
 ```
 
 **何时使用不同版本：**
 - **Java 8**（默认）：面向广泛用户的库、传统项目
-- **Java 11**：使用 Java 11+ 特性的项目、维护 LTS 兼容性
 - **Java 17**：现代项目、当前的 LTS 版本，长期支持
 - **Java 21**：最新的 LTS 版本、前沿特性
 
@@ -117,34 +113,31 @@ jobs:
 | 功能 | 必需的密钥 |
 |---------|------------------|
 | **Maven Central 部署**（核心） | `gpg-private-key`, `gpg-passphrase`, `maven-username`, `maven-password` |
-| **GitHub Release**（可选） | `github-token` |
 | **GitHub Pages**（可选） | `github-token` |
 
 ## 📤 输出参数
 
 | 输出        | 描述                            |
 |-------------|--------------------------------|
-| version     | 发布的版本号                    |
+| version     | 已部署的版本号                    |
 | deployed    | 构件是否已成功部署              |
-| release-url | GitHub Release URL（如果已创建）|
 
 ## 💡 使用示例
 
 ### 示例 1：最小化配置（仅 Maven Central）
 
-如果您只想部署到 Maven Central，不需要 GitHub Release 或 Pages：
+如果您只想部署到 Maven Central，不需要 GitHub Pages：
 
 ```yaml
-- name: 部署到 Maven Central
-  uses: chensoul/maven-release-action@v1
+- name: Deploy to Maven Central
+  uses: rosestack/maven-deploy-action@main
   with:
     java-version: '17'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
     maven-username: ${{ secrets.MAVEN_USERNAME }}
     maven-password: ${{ secrets.MAVEN_PASSWORD }}
-    # 禁用这些功能时无需 github-token：
-    create-release: 'false'
+    # 禁用页面功能时无需 github-token：
     deploy-pages: 'false'
 ```
 
@@ -172,7 +165,7 @@ jobs:
           fetch-depth: 0
       
       - name: 发布
-        uses: chensoul/maven-release-action@v1
+        uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -214,7 +207,7 @@ jobs:
           git push origin "v${{ github.event.inputs.version }}"
       
       - name: 发布
-        uses: chensoul/maven-release-action@v1
+        uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -229,7 +222,7 @@ jobs:
 ```yaml
 - name: 带覆盖率的发布
   id: release
-  uses: chensoul/maven-release-action@v1
+  uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -237,18 +230,17 @@ jobs:
     maven-password: ${{ secrets.MAVEN_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
 
-- name: 检查发布状态
+- name: 检查部署状态
   run: |
-    echo "发布版本: ${{ steps.release.outputs.version }}"
-    echo "发布状态: ${{ steps.release.outputs.deployed }}"
-    echo "发布 URL: ${{ steps.release.outputs.release-url }}"
+    echo "部署版本: ${{ steps.release.outputs.version }}"
+    echo "部署状态: ${{ steps.release.outputs.deployed }}"
 ```
 
 ### 示例 5：快速发布（跳过测试）
 
 ```yaml
 - name: 快速发布
-  uses: chensoul/maven-release-action@v1
+  uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -263,7 +255,7 @@ jobs:
 
 ```yaml
 - name: 发布后端模块
-  uses: chensoul/maven-release-action@v1
+  uses: rosestack/maven-deploy-action@main
   with:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -281,7 +273,7 @@ strategy:
     java: ['11', '17', '21']
 steps:
   - name: 在 Java ${{ matrix.java }} 上发布
-    uses: chensoul/maven-release-action@v1
+    uses: rosestack/maven-deploy-action@main
     with:
       java-version: ${{ matrix.java }}
       gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -486,13 +478,6 @@ gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
 * 确保 POM 中包含所有必需的元数据
 * 验证构件是否正确签名
 
-### GitHub Release 未创建
-
-* 检查工作流是否在标签推送时运行
-* 验证 `github-token` 具有 `contents: write` 权限
-* 确保 `create-release` 设置为 `'true'`
-* 确认标签遵循版本模式
-
 ### GitHub Pages 部署失败
 
 * 在仓库设置中启用 GitHub Pages
@@ -517,7 +502,6 @@ gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
 * 生成的构件列表
 * 部署状态
 * 快速链接：
-  * GitHub Release
   * Maven Central 构件
   * 文档站点
 
@@ -576,8 +560,8 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 ## 📧 支持
 
 如有问题和疑问：
-* GitHub Issues: https://github.com/chensoul/maven-release-action/issues
-* 文档: https://github.com/chensoul/maven-release-action
+* GitHub Issues: https://github.com/chensoul/maven-deploy-action/issues
+* 文档: https://github.com/chensoul/maven-deploy-action
 
 ## 🙏 致谢
 
