@@ -10,11 +10,11 @@ A comprehensive GitHub composite action for releasing Maven projects to Maven Ce
 * 📦 **Maven Central Deployment** - Automated deployment with GPG signing
 * 🏷️ **GitHub Releases** - Automatic release creation with artifacts
 * 📚 **Documentation Publishing** - Deploy Maven site to GitHub Pages
-* 🧪 **Testing & Coverage** - Run tests with JaCoCo and Codecov integration
+* 🧪 **Testing & Coverage** - Run tests with JaCoCo coverage
 * 🔐 **Secure Signing** - GPG signing of all artifacts
-* 📊 **Build Summaries** - Beautiful GitHub Actions summary reports
 * 🎯 **Flexible Configuration** - Customize every aspect of the release
 * 📁 **Multi-module Support** - Works with submodules via working directory
+* ⚡ **High Performance** - Single build process, no redundant steps
 
 ## 📋 Prerequisites
 
@@ -45,7 +45,6 @@ jobs:
       - name: Release to Maven Central
         uses: chensoul/maven-release-action@v1
         with:
-          java-version: '17'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
           maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
@@ -61,12 +60,12 @@ jobs:
   with:
     java-version: '17'
     java-distribution: 'temurin'
+    server-id: 'central'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
     maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
     maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    codecov-token: ${{ secrets.CODECOV_TOKEN }}
     skip-tests: 'false'
     deploy-pages: 'true'
     create-release: 'true'
@@ -78,18 +77,17 @@ jobs:
 |-------------------|------------------------------------------|----------|---------|
 | java-version      | Java version to use                      | No       | 8       |
 | java-distribution | Java distribution (temurin, zulu, etc.)  | No       | zulu    |
+| server-id         | Maven server ID for deployment           | No       | central |
 | maven-args        | Additional Maven arguments               | No       | -ntp -U -B |
 | gpg-private-key   | GPG private key for signing              | **Yes*** | -       |
 | gpg-passphrase    | GPG passphrase                           | **Yes*** | -       |
-| maven-username    | Maven Central username (OSSRH)           | **Yes*** | -       |
-| maven-password    | Maven Central password (OSSRH)           | **Yes*** | -       |
+| maven-username    | Maven Central username                   | **Yes*** | -       |
+| maven-password    | Maven Central password                   | **Yes*** | -       |
 | github-token      | GitHub token for releases and pages      | No**     | ''      |
-| codecov-token     | Codecov token for uploading coverage     | No       | ''      |
 | skip-tests        | Skip running tests                       | No       | false   |
 | deploy-pages      | Deploy documentation to GitHub Pages     | No       | true    |
 | create-release    | Create GitHub Release                    | No       | true    |
 | working-directory | Working directory for Maven              | No       | .       |
-| cache-key-prefix  | Maven cache key prefix                   | No       | maven-release |
 
 **\*** Required for Maven Central deployment  
 **\*\*** Required only if `create-release: 'true'` or `deploy-pages: 'true'`
@@ -121,16 +119,14 @@ The default Java version is **8** for maximum compatibility:
 | **Maven Central Deployment** (core) | `gpg-private-key`, `gpg-passphrase`, `maven-username`, `maven-password` |
 | **GitHub Release** (optional) | `github-token` |
 | **GitHub Pages** (optional) | `github-token` |
-| **Code Coverage** (optional) | `codecov-token` |
 
 ## 📤 Outputs
 
-| Output             | Description                                       |
-|--------------------|---------------------------------------------------|
-| release-version    | The version that was released                     |
-| release-status     | Release status (success/failure)                  |
-| artifacts-deployed | Whether artifacts were deployed to Maven Central  |
-| release-url        | GitHub Release URL (if created)                   |
+| Output      | Description                              |
+|-------------|------------------------------------------|
+| version     | The version that was released            |
+| deployed    | Whether artifacts were deployed          |
+| release-url | GitHub Release URL (if created)          |
 
 ## 💡 Usage Examples
 
@@ -240,12 +236,11 @@ jobs:
     maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
     maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
 - name: Check Release Status
   run: |
-    echo "Release Version: ${{ steps.release.outputs.release-version }}"
-    echo "Release Status: ${{ steps.release.outputs.release-status }}"
+    echo "Release Version: ${{ steps.release.outputs.version }}"
+    echo "Deployment Status: ${{ steps.release.outputs.deployed }}"
     echo "Release URL: ${{ steps.release.outputs.release-url }}"
 ```
 
@@ -332,15 +327,6 @@ Add to GitHub Secrets:
 ### 3. GitHub Token
 
 Use the default `${{ secrets.GITHUB_TOKEN }}` or create a Personal Access Token with `contents: write` permission.
-
-### 4. Codecov Token (Optional)
-
-1. Sign up at https://codecov.io
-2. Link your repository
-3. Get the repository token
-
-Add to GitHub Secrets:
-- `CODECOV_TOKEN`: Your Codecov repository token
 
 ## 📝 Maven POM Configuration
 
@@ -571,9 +557,7 @@ For issues and questions:
 
 * Inspired by [maven-build-action](https://github.com/rosestack/maven-build-action)
 * Uses [actions/setup-java](https://github.com/actions/setup-java)
-* Uses [dorny/test-reporter](https://github.com/dorny/test-reporter)
 * Uses [peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages)
-* Uses [codecov/codecov-action](https://github.com/codecov/codecov-action)
 
 ## 🔗 Related Actions
 

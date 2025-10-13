@@ -24,16 +24,14 @@ jobs:
       
       - name: Release to Maven Central
         id: release
-        uses: chensoul/maven-release-action@main
+        uses: chensoul/maven-release-action@v1
         with:
-          java-version: '17'
-          java-distribution: 'temurin'
+          working-directory: 'test-project'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
           maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          codecov-token: ${{ secrets.CODECOV_TOKEN }}
           skip-tests: 'false'
           deploy-pages: 'true'
           create-release: 'true'

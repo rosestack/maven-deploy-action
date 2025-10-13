@@ -10,11 +10,11 @@
 * 📦 **Maven Central 部署** - 自动部署并进行 GPG 签名
 * 🏷️ **GitHub Releases** - 自动创建包含构件的发布版本
 * 📚 **文档发布** - 将 Maven 站点部署到 GitHub Pages
-* 🧪 **测试与覆盖率** - 运行测试并集成 JaCoCo 和 Codecov
+* 🧪 **测试与覆盖率** - 运行测试并集成 JaCoCo 覆盖率
 * 🔐 **安全签名** - 对所有构件进行 GPG 签名
-* 📊 **构建摘要** - 精美的 GitHub Actions 摘要报告
 * 🎯 **灵活配置** - 自定义发布的每个方面
 * 📁 **多模块支持** - 通过工作目录支持子模块
+* ⚡ **高性能** - 单次构建流程，无冗余步骤
 
 ## 📋 前提条件
 
@@ -66,7 +66,6 @@ jobs:
     maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
     maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    codecov-token: ${{ secrets.CODECOV_TOKEN }}
     skip-tests: 'false'
     deploy-pages: 'true'
     create-release: 'true'
@@ -78,18 +77,17 @@ jobs:
 |-------------------|--------------------------------------|------|--------|
 | java-version      | 使用的 Java 版本                     | 否   | 8      |
 | java-distribution | Java 发行版 (temurin, zulu 等)       | 否   | zulu   |
+| server-id         | Maven 服务器 ID                      | 否   | central |
 | maven-args        | 额外的 Maven 参数                    | 否   | -ntp -U -B |
 | gpg-private-key   | 用于签名的 GPG 私钥                  | **是*** | -      |
 | gpg-passphrase    | GPG 密码短语                         | **是*** | -      |
-| maven-username    | Maven Central 用户名 (OSSRH)         | **是*** | -      |
-| maven-password    | Maven Central 密码 (OSSRH)           | **是*** | -      |
+| maven-username    | Maven Central 用户名                 | **是*** | -      |
+| maven-password    | Maven Central 密码                   | **是*** | -      |
 | github-token      | 用于创建发布和部署页面的 GitHub token | 否**    | ''     |
-| codecov-token     | 用于上传覆盖率的 Codecov token       | 否   | ''     |
 | skip-tests        | 跳过运行测试                         | 否   | false  |
 | deploy-pages      | 将文档部署到 GitHub Pages            | 否   | true   |
 | create-release    | 创建 GitHub Release                  | 否   | true   |
 | working-directory | Maven 的工作目录                     | 否   | .      |
-| cache-key-prefix  | Maven 缓存键前缀                     | 否   | maven-release |
 
 **\*** Maven Central 部署必需  
 **\*\*** 仅在 `create-release: 'true'` 或 `deploy-pages: 'true'` 时需要
@@ -121,16 +119,14 @@ jobs:
 | **Maven Central 部署**（核心） | `gpg-private-key`, `gpg-passphrase`, `maven-username`, `maven-password` |
 | **GitHub Release**（可选） | `github-token` |
 | **GitHub Pages**（可选） | `github-token` |
-| **代码覆盖率**（可选） | `codecov-token` |
 
 ## 📤 输出参数
 
-| 输出               | 描述                                   |
-|--------------------|----------------------------------------|
-| release-version    | 发布的版本号                           |
-| release-status     | 发布状态 (success/failure)             |
-| artifacts-deployed | 构件是否已部署到 Maven Central         |
-| release-url        | GitHub Release URL（如果已创建）       |
+| 输出        | 描述                            |
+|-------------|--------------------------------|
+| version     | 发布的版本号                    |
+| deployed    | 构件是否已成功部署              |
+| release-url | GitHub Release URL（如果已创建）|
 
 ## 💡 使用示例
 
@@ -240,12 +236,11 @@ jobs:
     maven-username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
     maven-password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
 - name: 检查发布状态
   run: |
-    echo "发布版本: ${{ steps.release.outputs.release-version }}"
-    echo "发布状态: ${{ steps.release.outputs.release-status }}"
+    echo "发布版本: ${{ steps.release.outputs.version }}"
+    echo "发布状态: ${{ steps.release.outputs.deployed }}"
     echo "发布 URL: ${{ steps.release.outputs.release-url }}"
 ```
 
@@ -332,15 +327,6 @@ gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
 ### 3. GitHub Token
 
 使用默认的 `${{ secrets.GITHUB_TOKEN }}` 或创建具有 `contents: write` 权限的个人访问令牌。
-
-### 4. Codecov Token（可选）
-
-1. 在 https://codecov.io 注册
-2. 链接您的仓库
-3. 获取仓库令牌
-
-添加到 GitHub Secrets：
-- `CODECOV_TOKEN`: 您的 Codecov 仓库令牌
 
 ## 📝 Maven POM 配置
 
@@ -597,9 +583,7 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 * 受 [maven-build-action](https://github.com/rosestack/maven-build-action) 启发
 * 使用 [actions/setup-java](https://github.com/actions/setup-java)
-* 使用 [dorny/test-reporter](https://github.com/dorny/test-reporter)
 * 使用 [peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages)
-* 使用 [codecov/codecov-action](https://github.com/codecov/codecov-action)
 
 ## 🔗 相关 Actions
 
