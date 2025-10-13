@@ -96,7 +96,7 @@ runs:
         if [[ "$TAG_NAME" =~ -SNAPSHOT$ ]]; then
           echo "is_snapshot=true" >> $GITHUB_OUTPUT
           echo "⚠️  SNAPSHOT version detected: ${TAG_NAME}"
-          echo "📦 GitHub Release and Pages deployment will be skipped for SNAPSHOT versions"
+          echo "📦 GitHub Pages deployment will be skipped for SNAPSHOT versions"
         else
           echo "is_snapshot=false" >> $GITHUB_OUTPUT
         fi
