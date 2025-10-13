@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: rosestack/maven-deploy-action@v1
+      - uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -43,21 +43,21 @@ jobs:
 
 ## Inputs
 
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `java-version` | Java version | No | `8` |
-| `java-distribution` | Java distribution | No | `zulu` |
-| `server-id` | Maven server ID | No | `central` |
+| Input | Description | Required | Default      |
+|-------|-------------|----------|--------------|
+| `java-version` | Java version | No | `17`         |
+| `java-distribution` | Java distribution | No | `zulu`       |
+| `server-id` | Maven server ID | No | `central`    |
 | `maven-args` | Additional Maven arguments | No | `-ntp -U -B` |
-| `maven-profiles` | Maven profiles to activate | No | `central` |
-| `gpg-private-key` | GPG private key for signing | Yes* | - |
-| `gpg-passphrase` | GPG passphrase | Yes* | - |
-| `maven-username` | Maven Central username | Yes* | - |
-| `maven-password` | Maven Central password | Yes* | - |
-| `github-token` | GitHub token for Pages | No** | `''` |
-| `skip-tests` | Skip tests | No | `false` |
-| `deploy-pages` | Deploy to GitHub Pages | No | `true` |
-| `working-directory` | Maven working directory | No | `.` |
+| `maven-profiles` | Maven profiles to activate | No | `central`    |
+| `gpg-private-key` | GPG private key for signing | Yes* | -            |
+| `gpg-passphrase` | GPG passphrase | Yes* | -            |
+| `maven-username` | Maven Central username | Yes* | -            |
+| `maven-password` | Maven Central password | Yes* | -            |
+| `github-token` | GitHub token for Pages | No** | `''`         |
+| `skip-tests` | Skip tests | No | `false`      |
+| `deploy-pages` | Deploy to GitHub Pages | No | `true`       |
+| `working-directory` | Maven working directory | No | `.`          |
 
 \* Required for Maven Central deployment  
 \*\* Required only if `deploy-pages: 'true'`
@@ -74,7 +74,7 @@ jobs:
 ### Maven Central Only
 
 ```yaml
-- uses: rosestack/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -86,7 +86,7 @@ jobs:
 ### With GitHub Pages
 
 ```yaml
-- uses: rosestack/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -98,7 +98,7 @@ jobs:
 ### Skip Tests
 
 ```yaml
-- uses: rosestack/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -111,7 +111,7 @@ jobs:
 ### Submodule
 
 ```yaml
-- uses: rosestack/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -151,7 +151,7 @@ jobs:
           git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
           git push origin "v${{ github.event.inputs.version }}"
       
-      - uses: rosestack/maven-deploy-action@v1
+      - uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}

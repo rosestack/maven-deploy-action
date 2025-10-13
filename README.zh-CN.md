@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: rosestack/maven-deploy-action@v1
+      - uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -43,21 +43,21 @@ jobs:
 
 ## 输入参数
 
-| 参数 | 描述 | 必需 | 默认值 |
-|------|------|------|--------|
-| `java-version` | Java 版本 | 否 | `8` |
-| `java-distribution` | Java 发行版 | 否 | `zulu` |
-| `server-id` | Maven 服务器 ID | 否 | `central` |
+| 参数 | 描述 | 必需 | 默认值          |
+|------|------|------|--------------|
+| `java-version` | Java 版本 | 否 | `17`         |
+| `java-distribution` | Java 发行版 | 否 | `zulu`       |
+| `server-id` | Maven 服务器 ID | 否 | `central`    |
 | `maven-args` | 额外的 Maven 参数 | 否 | `-ntp -U -B` |
-| `maven-profiles` | 要激活的 Maven profiles | 否 | `central` |
-| `gpg-private-key` | GPG 私钥 | 是* | - |
-| `gpg-passphrase` | GPG 密码 | 是* | - |
-| `maven-username` | Maven Central 用户名 | 是* | - |
-| `maven-password` | Maven Central 密码 | 是* | - |
-| `github-token` | GitHub token（用于 Pages） | 否** | `''` |
-| `skip-tests` | 跳过测试 | 否 | `false` |
-| `deploy-pages` | 部署到 GitHub Pages | 否 | `true` |
-| `working-directory` | Maven 工作目录 | 否 | `.` |
+| `maven-profiles` | 要激活的 Maven profiles | 否 | `central`    |
+| `gpg-private-key` | GPG 私钥 | 是* | -            |
+| `gpg-passphrase` | GPG 密码 | 是* | -            |
+| `maven-username` | Maven Central 用户名 | 是* | -            |
+| `maven-password` | Maven Central 密码 | 是* | -            |
+| `github-token` | GitHub token（用于 Pages） | 否** | `''`         |
+| `skip-tests` | 跳过测试 | 否 | `false`      |
+| `deploy-pages` | 部署到 GitHub Pages | 否 | `true`       |
+| `working-directory` | Maven 工作目录 | 否 | `.`          |
 
 \* Maven Central 部署必需  
 \*\* 仅在 `deploy-pages: 'true'` 时需要
@@ -74,7 +74,7 @@ jobs:
 ### 仅 Maven Central
 
 ```yaml
-- uses: rosestack/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -86,7 +86,7 @@ jobs:
 ### 包含 GitHub Pages
 
 ```yaml
-- uses: rosestack/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -98,7 +98,7 @@ jobs:
 ### 跳过测试
 
 ```yaml
-- uses: rosestack/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -111,7 +111,7 @@ jobs:
 ### 子模块
 
 ```yaml
-- uses: rosestack/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@main
   with:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -151,7 +151,7 @@ jobs:
           git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
           git push origin "v${{ github.event.inputs.version }}"
       
-      - uses: rosestack/maven-deploy-action@v1
+      - uses: rosestack/maven-deploy-action@main
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}

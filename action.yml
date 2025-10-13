@@ -10,7 +10,7 @@ inputs:
   # Java Environment
   java-version:
     description: 'Java version to use'
-    default: '8'
+    default: '17'
     required: false
   java-distribution:
     description: 'Java distribution'
