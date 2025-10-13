@@ -85,7 +85,7 @@ jobs:
       
       - name: Release to Maven Central
         id: release
-        uses: chensoul/maven-release-action@v1
+        uses: rosestack/maven-release-action@main
         with:
           working-directory: 'test-project'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
