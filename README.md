@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Release to Maven Central
-        uses: rosestack/maven-release-action@main
+        uses: chensoul/maven-release-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -56,7 +56,7 @@ jobs:
 
 ```yaml
 - name: Complete Release
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     java-version: '17'
     java-distribution: 'temurin'
@@ -98,10 +98,10 @@ The default Java version is **8** for maximum compatibility:
 
 ```yaml
 # Default (Java 8) - Maximum compatibility
-- uses: rosestack/maven-release-action@main
+- uses: chensoul/maven-release-action@v1
 
 # Modern projects (Java 11+)
-- uses: rosestack/maven-release-action@main
+- uses: chensoul/maven-release-action@v1
   with:
     java-version: '17'  # or '11', '21'
 ```
@@ -136,7 +136,7 @@ If you only want to deploy to Maven Central without GitHub Release or Pages:
 
 ```yaml
 - name: Deploy to Maven Central
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     java-version: '17'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -172,7 +172,7 @@ jobs:
           fetch-depth: 0
       
       - name: Release
-        uses: rosestack/maven-release-action@main
+        uses: chensoul/maven-release-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -214,7 +214,7 @@ jobs:
           git push origin "v${{ github.event.inputs.version }}"
       
       - name: Release
-        uses: rosestack/maven-release-action@main
+        uses: chensoul/maven-release-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -229,7 +229,7 @@ jobs:
 ```yaml
 - name: Release with Coverage
   id: release
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -248,7 +248,7 @@ jobs:
 
 ```yaml
 - name: Fast Release
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -263,7 +263,7 @@ jobs:
 
 ```yaml
 - name: Release Backend Module
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -281,7 +281,7 @@ strategy:
     java: ['11', '17', '21']
 steps:
   - name: Release on Java ${{ matrix.java }}
-    uses: rosestack/maven-release-action@main
+    uses: chensoul/maven-release-action@v1
     with:
       java-version: ${{ matrix.java }}
       gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}

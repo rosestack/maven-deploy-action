@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: 发布到 Maven Central
-        uses: rosestack/maven-release-action@main
+        uses: chensoul/maven-release-action@v1
         with:
           java-version: '17'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -57,7 +57,7 @@ jobs:
 
 ```yaml
 - name: 完整发布
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     java-version: '17'
     java-distribution: 'temurin'
@@ -98,10 +98,10 @@ jobs:
 
 ```yaml
 # 默认（Java 8）- 最大兼容性
-- uses: rosestack/maven-release-action@main
+- uses: chensoul/maven-release-action@v1
 
 # 现代项目（Java 11+）
-- uses: rosestack/maven-release-action@main
+- uses: chensoul/maven-release-action@v1
   with:
     java-version: '17'  # 或 '11', '21'
 ```
@@ -136,7 +136,7 @@ jobs:
 
 ```yaml
 - name: 部署到 Maven Central
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     java-version: '17'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -172,7 +172,7 @@ jobs:
           fetch-depth: 0
       
       - name: 发布
-        uses: rosestack/maven-release-action@main
+        uses: chensoul/maven-release-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -214,7 +214,7 @@ jobs:
           git push origin "v${{ github.event.inputs.version }}"
       
       - name: 发布
-        uses: rosestack/maven-release-action@main
+        uses: chensoul/maven-release-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -229,7 +229,7 @@ jobs:
 ```yaml
 - name: 带覆盖率的发布
   id: release
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -248,7 +248,7 @@ jobs:
 
 ```yaml
 - name: 快速发布
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -263,7 +263,7 @@ jobs:
 
 ```yaml
 - name: 发布后端模块
-  uses: rosestack/maven-release-action@main
+  uses: chensoul/maven-release-action@v1
   with:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -281,7 +281,7 @@ strategy:
     java: ['11', '17', '21']
 steps:
   - name: 在 Java ${{ matrix.java }} 上发布
-    uses: rosestack/maven-release-action@main
+    uses: chensoul/maven-release-action@v1
     with:
       java-version: ${{ matrix.java }}
       gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
