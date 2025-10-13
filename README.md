@@ -1,9 +1,9 @@
 # Maven Deploy Action
 
-[![GitHub release](https://img.shields.io/github/v/release/chensoul/maven-deploy-action)](https://github.com/chensoul/maven-deploy-action/releases)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/chensoul/maven-deploy-action/ci.yml?branch=main)](https://github.com/chensoul/maven-deploy-action/actions/workflows/test.yml)
-[![License](https://img.shields.io/github/license/chensoul/maven-deploy-action)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/chensoul/maven-deploy-action)](https://github.com/chensoul/maven-deploy-action/stargazers)
+[![GitHub release](https://img.shields.io/github/v/release/rosestack/maven-deploy-action)](https://github.com/rosestack/maven-deploy-action/releases)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/rosestack/maven-deploy-action/ci.yml?branch=main)](https://github.com/rosestack/maven-deploy-action/actions/workflows/test.yml)
+[![License](https://img.shields.io/github/license/rosestack/maven-deploy-action)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/rosestack/maven-deploy-action)](https://github.com/rosestack/maven-deploy-action/stargazers)
 
 English | [简体中文](README.zh-CN.md)
 
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: chensoul/maven-deploy-action@v1
+      - uses: rosestack/maven-deploy-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -74,7 +74,7 @@ jobs:
 ### Maven Central Only
 
 ```yaml
-- uses: chensoul/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@v1
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -86,7 +86,7 @@ jobs:
 ### With GitHub Pages
 
 ```yaml
-- uses: chensoul/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@v1
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -98,7 +98,7 @@ jobs:
 ### Skip Tests
 
 ```yaml
-- uses: chensoul/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@v1
   with:
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
     gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -111,7 +111,7 @@ jobs:
 ### Submodule
 
 ```yaml
-- uses: chensoul/maven-deploy-action@v1
+- uses: rosestack/maven-deploy-action@v1
   with:
     working-directory: './backend'
     gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -151,7 +151,7 @@ jobs:
           git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
           git push origin "v${{ github.event.inputs.version }}"
       
-      - uses: chensoul/maven-deploy-action@v1
+      - uses: rosestack/maven-deploy-action@v1
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -311,6 +311,6 @@ Apache License 2.0 - see [LICENSE](LICENSE)
 
 ## Links
 
-- [Issues](https://github.com/chensoul/maven-deploy-action/issues)
+- [Issues](https://github.com/rosestack/maven-deploy-action/issues)
 - [maven-deploy-action](https://github.com/rosestack/maven-deploy-action)
 - [actions/setup-java](https://github.com/actions/setup-java)
