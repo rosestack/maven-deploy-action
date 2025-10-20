@@ -27,8 +27,8 @@ inputs:
     default: '-ntp -U -B'
     required: false
   maven-profiles:
-    description: 'Maven profiles to activate (comma-separated, e.g., central,release)'
-    default: 'central'
+    description: 'Maven profiles to activate (comma-separated, e.g., release)'
+    default: 'release'
     required: false
   working-directory:
     description: 'Working directory for Maven'
